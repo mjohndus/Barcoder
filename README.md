@@ -113,7 +113,7 @@ file_put_contents($filename, $svg);
 
 `tc` - Text color in `#RRGGBB` format. Applies to linear barcodes only.
 
-`tf` - Text font for SVG output. Default is monospace. Applies to linear barcodes only.
+`tf` - Text font for Imagick, GD and SVG output in .ttf. Applies to linear barcodes only.
 
 `ts` - Text size. For SVG output, this is in points and the default is 10. For PNG, GIF, or JPEG output, this is the GD library built-in font number from 1 to 5 and the default is 1. Applies to linear barcodes only.
 
@@ -133,3 +133,7 @@ file_put_contents($filename, $svg);
 `wq` - Width of quiet area units. Default is 1. Use 0 to suppress quiet area.
 
 `wm` - Width of narrow modules and spaces. Default is 1.
+
+`ww` - Width of wide modules and spaces. Applies to Code 39, Codabar, and ITF only. Default is 3.
+
+`wn` - Width of narrow space between characters. Applies to Code 39 and Codabar only. Default is 1.
