@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 \****************************************************************************/
 
-namespace Barcoder\Encoder;
+namespace Barcoder\Encoders;
 
 class Codebar {
 
