@@ -28,12 +28,12 @@ DEALINGS IN THE SOFTWARE.
 
 namespace Barcoder;
 
-//use Barcoder\Encoder\UPC;
-//use Barcoder\Encoder\DMTX;
-//use Barcoder\Encoder\Codes;
-//use Barcoder\Encoder\Codebar;
-//use Barcoder\Encoder\ITF;
-//use Barcoder\Encoder\Qrcode;
+//use Barcoder\Encoders\UPC;
+//use Barcoder\Encoders\DMTX;
+//use Barcoder\Encoders\Codes;
+//use Barcoder\Encoders\Codebar;
+//use Barcoder\Encoders\ITF;
+//use Barcoder\Encoders\Qrcode;
 
 class Barcoder {
 
@@ -503,42 +503,42 @@ class Barcoder {
 
 	private function dispatch_encode($symbology, $data, $options) {
 		switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $symbology))) {
-                        case 'upca'       : return (new Encoder\UPC)->upc_a_encode($data);
-                        case 'upce'       : return (new Encoder\UPC)->upc_e_encode($data);
-                        case 'ean13nopad' : return (new Encoder\UPC)->ean_13_encode($data, ' ');
-                        case 'ean13pad'   : return (new Encoder\UPC)->ean_13_encode($data, '>');
-                        case 'ean13'      : return (new Encoder\UPC)->ean_13_encode($data, '>');
-                        case 'ean8'       : return (new Encoder\UPC)->ean_8_encode($data);
-                        case 'code39'     : return (new Encoder\Code)->code_39_encode($data);
-                        case 'code39ascii': return (new Encoder\Code)->code_39_ascii_encode($data);
-                        case 'code93'     : return (new Encoder\Code)->code_93_encode($data);
-                        case 'code93ascii': return (new Encoder\Code)->code_93_ascii_encode($data);
-                        case 'code128'    : return (new Encoder\Code)->code_128_encode($data, 0,false);
-                        case 'code128a'   : return (new Encoder\Code)->code_128_encode($data, 1,false);
-                        case 'code128b'   : return (new Encoder\Code)->code_128_encode($data, 2,false);
-                        case 'code128c'   : return (new Encoder\Code)->code_128_encode($data, 3,false);
-                        case 'code128ac'  : return (new Encoder\Code)->code_128_encode($data,-1,false);
-                        case 'code128bc'  : return (new Encoder\Code)->code_128_encode($data,-2,false);
-                        case 'ean128'     : return (new Encoder\Code)->code_128_encode($data, 0, true);
-                        case 'ean128a'    : return (new Encoder\Code)->code_128_encode($data, 1, true);
-                        case 'ean128b'    : return (new Encoder\Code)->code_128_encode($data, 2, true);
-                        case 'ean128c'    : return (new Encoder\Code)->code_128_encode($data, 3, true);
-                        case 'ean128ac'   : return (new Encoder\Code)->code_128_encode($data,-1, true);
-                        case 'ean128bc'   : return (new Encoder\Code)->code_128_encode($data,-2, true);
-                        case 'codabar'    : return (new Encoder\Codebar)->codabar_encode($data);
-                        case 'itf'        : return (new Encoder\ITF)->itf_encode($data);
-                        case 'itf14'      : return (new Encoder\ITF)->itf_encode($data);
-                        case 'qr'         : return (new Encoder\Qrcode)->qr_encode($data, 0);
-                        case 'qrl'        : return (new Encoder\Qrcode)->qr_encode($data, 0);
-                        case 'qrm'        : return (new Encoder\Qrcode)->qr_encode($data, 1);
-                        case 'qrq'        : return (new Encoder\Qrcode)->qr_encode($data, 2);
-                        case 'qrh'        : return (new Encoder\Qrcode)->qr_encode($data, 3);
-                        case 'dmtx'       : return (new Encoder\Linear)->dmtx_encode($data,false,false);
-                        case 'dmtxs'      : return (new Encoder\Linear)->dmtx_encode($data,false,false);
-                        case 'dmtxr'      : return (new Encoder\Linear)->dmtx_encode($data, true,false);
-                        case 'gs1dmtx'    : return (new Encoder\Linear)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxs'   : return (new Encoder\Linear)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxr'   : return (new Encoder\Linear)->dmtx_encode($data, true, true);
+                        case 'upca'       : return (new Encoders\UPC)->upc_a_encode($data);
+                        case 'upce'       : return (new Encoders\UPC)->upc_e_encode($data);
+                        case 'ean13nopad' : return (new Encoders\UPC)->ean_13_encode($data, ' ');
+                        case 'ean13pad'   : return (new Encoders\UPC)->ean_13_encode($data, '>');
+                        case 'ean13'      : return (new Encoders\UPC)->ean_13_encode($data, '>');
+                        case 'ean8'       : return (new Encoders\UPC)->ean_8_encode($data);
+                        case 'code39'     : return (new Encoders\Code)->code_39_encode($data);
+                        case 'code39ascii': return (new Encoders\Code)->code_39_ascii_encode($data);
+                        case 'code93'     : return (new Encoders\Code)->code_93_encode($data);
+                        case 'code93ascii': return (new Encoders\Code)->code_93_ascii_encode($data);
+                        case 'code128'    : return (new Encoders\Code)->code_128_encode($data, 0,false);
+                        case 'code128a'   : return (new Encoders\Code)->code_128_encode($data, 1,false);
+                        case 'code128b'   : return (new Encoders\Code)->code_128_encode($data, 2,false);
+                        case 'code128c'   : return (new Encoders\Code)->code_128_encode($data, 3,false);
+                        case 'code128ac'  : return (new Encoders\Code)->code_128_encode($data,-1,false);
+                        case 'code128bc'  : return (new Encoders\Code)->code_128_encode($data,-2,false);
+                        case 'ean128'     : return (new Encoders\Code)->code_128_encode($data, 0, true);
+                        case 'ean128a'    : return (new Encoders\Code)->code_128_encode($data, 1, true);
+                        case 'ean128b'    : return (new Encoders\Code)->code_128_encode($data, 2, true);
+                        case 'ean128c'    : return (new Encoders\Code)->code_128_encode($data, 3, true);
+                        case 'ean128ac'   : return (new Encoders\Code)->code_128_encode($data,-1, true);
+                        case 'ean128bc'   : return (new Encoders\Code)->code_128_encode($data,-2, true);
+                        case 'codabar'    : return (new Encoders\Codebar)->codabar_encode($data);
+                        case 'itf'        : return (new Encoders\ITF)->itf_encode($data);
+                        case 'itf14'      : return (new Encoders\ITF)->itf_encode($data);
+                        case 'qr'         : return (new Encoders\Qrcode)->qr_encode($data, 0);
+                        case 'qrl'        : return (new Encoders\Qrcode)->qr_encode($data, 0);
+                        case 'qrm'        : return (new Encoders\Qrcode)->qr_encode($data, 1);
+                        case 'qrq'        : return (new Encoders\Qrcode)->qr_encode($data, 2);
+                        case 'qrh'        : return (new Encoders\Qrcode)->qr_encode($data, 3);
+                        case 'dmtx'       : return (new Encoders\Linear)->dmtx_encode($data,false,false);
+                        case 'dmtxs'      : return (new Encoders\Linear)->dmtx_encode($data,false,false);
+                        case 'dmtxr'      : return (new Encoders\Linear)->dmtx_encode($data, true,false);
+                        case 'gs1dmtx'    : return (new Encoders\Linear)->dmtx_encode($data,false, true);
+                        case 'gs1dmtxs'   : return (new Encoders\Linear)->dmtx_encode($data,false, true);
+                        case 'gs1dmtxr'   : return (new Encoders\Linear)->dmtx_encode($data, true, true);
 		}
 		return null;
 	}
@@ -623,7 +623,6 @@ class Barcoder {
                 $textheight = (isset($options['th']) ? (int)$options['th'] : 20);
                 $textsize = (isset($options['ts']) ? (int)$options['ts'] : 16);
                 $textbase = (isset($options['tb']) && (int)$options['tb'] !== 0 ? (int)$options['tb'] : 0);
-                //$textfont = (isset($options['tf']) ? (string)$options['tf'] : '/dat/Fonts/fonts/mscorefont/Times_New_Roman.ttf');
                 $textfont = (isset($options['tf']) ? (string)$options['tf'] : __dir__.'/../examples/fonts/FreeMono.ttf');
                 $textcolor = (isset($options['tc']) ? (int)$options['tc'] : '000');
 
