@@ -1,0 +1,90 @@
+<?php
+
+/****************************************************************************\
+
+barcode.php - Generate barcodes from a single PHP file. MIT license.
+
+Copyright (c) 2016-2018 Kreative Software.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+\****************************************************************************/
+
+namespace Barcoder\Encoder;
+
+class Codebar {
+
+        /* - - - - CODABAR ENCODER - - - - */
+
+        public function codabar_encode($data) {
+                $data = strtoupper(preg_replace(
+                        '/[^0-9ABCDENTabcdent*.\/:+$-]/', '', $data
+                ));
+                $blocks = array();
+                for ($i = 0, $n = strlen($data); $i < $n; $i++) {
+                        if ($blocks) {
+                                $blocks[] = array(
+                                        'm' => array(array(0, 1, 3))
+                                );
+                        }
+                        $char = substr($data, $i, 1);
+                        $block = $this->codabar_alphabet[$char];
+                        $blocks[] = array(
+                                'm' => array(
+                                        array(1, 1, $block[0]),
+                                        array(0, 1, $block[1]),
+                                        array(1, 1, $block[2]),
+                                        array(0, 1, $block[3]),
+                                        array(1, 1, $block[4]),
+                                        array(0, 1, $block[5]),
+                                        array(1, 1, $block[6]),
+                                ),
+                                'l' => array($char)
+                        );
+                }
+                return array('g' => 'l', 'b' => $blocks);
+        }
+
+        private $codabar_alphabet = array(
+                '0' => array(1, 1, 1, 1, 1, 2, 2),
+                '1' => array(1, 1, 1, 1, 2, 2, 1),
+                '4' => array(1, 1, 2, 1, 1, 2, 1),
+                '5' => array(2, 1, 1, 1, 1, 2, 1),
+                '2' => array(1, 1, 1, 2, 1, 1, 2),
+                '-' => array(1, 1, 1, 2, 2, 1, 1),
+                '$' => array(1, 1, 2, 2, 1, 1, 1),
+                '9' => array(2, 1, 1, 2, 1, 1, 1),
+                '6' => array(1, 2, 1, 1, 1, 1, 2),
+                '7' => array(1, 2, 1, 1, 2, 1, 1),
+                '8' => array(1, 2, 2, 1, 1, 1, 1),
+                '3' => array(2, 2, 1, 1, 1, 1, 1),
+                'C' => array(1, 1, 1, 2, 1, 2, 2),
+                'D' => array(1, 1, 1, 2, 2, 2, 1),
+                'A' => array(1, 1, 2, 2, 1, 2, 1),
+                'B' => array(1, 2, 1, 2, 1, 1, 2),
+                '*' => array(1, 1, 1, 2, 1, 2, 2),
+                'E' => array(1, 1, 1, 2, 2, 2, 1),
+                'T' => array(1, 1, 2, 2, 1, 2, 1),
+                'N' => array(1, 2, 1, 2, 1, 1, 2),
+                '.' => array(2, 1, 2, 1, 2, 1, 1),
+                '/' => array(2, 1, 2, 1, 1, 1, 2),
+                ':' => array(2, 1, 1, 1, 2, 1, 2),
+                '+' => array(1, 1, 2, 1, 2, 1, 2),
+        );
+}
