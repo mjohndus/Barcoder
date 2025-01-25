@@ -70,13 +70,14 @@ file_put_contents($filename, $svg);
 
 `s` - Symbology (type of barcode). One of:
 ```
-    upc-a          code-39         qr     dmtx
-    upc-e          code-39-ascii   qr-l   dmtx-s
-    ean-8          code-93         qr-m   dmtx-r
-    ean-13         code-93-ascii   qr-q   gs1-dmtx
-    ean-13-pad     code-128        qr-h   gs1-dmtx-s
-    ean-13-nopad   codabar                gs1-dmtx-r
-    ean-128        itf
+    upc-a          code-39         s25    dmtx
+    upc-e          code-39-ascii   s25+   dmtx-s
+    ean-2          code-93         qr     dmtx-r
+    ean-5          code-93-ascii   qr-l   gs1-dmtx
+    ean-8          code-128        qr-m   gs1-dmtx-s
+    ean-13         codabar         qr-q   gs1-dmtx-r
+    ean-13-pad     i25             qr-h
+    ean-128        i25+
 ```
 
 `d` - Data. For UPC or EAN, use `*` (Fixed bug - now working correct) for missing digit. For Codabar, use `ABCD` or `ENT*` for start and stop characters. For QR, encode in Shift-JIS for kanji mode.
