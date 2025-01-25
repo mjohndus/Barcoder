@@ -30,10 +30,11 @@ namespace Barcoder;
 
 //use Barcoder\Encoders\UPC;
 //use Barcoder\Encoders\DMTX;
-//use Barcoder\Encoders\Codes;
+//use Barcoder\Encoders\Code39;
 //use Barcoder\Encoders\Codebar;
 //use Barcoder\Encoders\ITF;
 //use Barcoder\Encoders\Qrcode;
+use Barcoder\Exception as BarcoderException;
 
 class Barcoder {
 
@@ -502,32 +503,35 @@ class Barcoder {
 	/* - - - - DISPATCH - - - - */
 
 	private function dispatch_encode($symbology, $data, $options) {
-		switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $symbology))) {
+		switch (strtolower(preg_replace('/[^A-Za-z0-9+]/', '', $symbology))) {
                         case 'upca'       : return (new Encoders\UPC)->upc_a_encode($data);
                         case 'upce'       : return (new Encoders\UPC)->upc_e_encode($data);
-                        case 'ean13nopad' : return (new Encoders\UPC)->ean_13_encode($data, ' ');
-                        case 'ean13pad'   : return (new Encoders\UPC)->ean_13_encode($data, '>');
-                        case 'ean13'      : return (new Encoders\UPC)->ean_13_encode($data, '>');
+                        case 'ean2'       : return (new Encoders\UPC)->ean_2_encode($data);
+                        case 'ean5'       : return (new Encoders\UPC)->ean_5_encode($data);
                         case 'ean8'       : return (new Encoders\UPC)->ean_8_encode($data);
-                        case 'code39'     : return (new Encoders\Code)->code_39_encode($data);
-                        case 'code39ascii': return (new Encoders\Code)->code_39_ascii_encode($data);
-                        case 'code93'     : return (new Encoders\Code)->code_93_encode($data);
-                        case 'code93ascii': return (new Encoders\Code)->code_93_ascii_encode($data);
-                        case 'code128'    : return (new Encoders\Code)->code_128_encode($data, 0,false);
-                        case 'code128a'   : return (new Encoders\Code)->code_128_encode($data, 1,false);
-                        case 'code128b'   : return (new Encoders\Code)->code_128_encode($data, 2,false);
-                        case 'code128c'   : return (new Encoders\Code)->code_128_encode($data, 3,false);
-                        case 'code128ac'  : return (new Encoders\Code)->code_128_encode($data,-1,false);
-                        case 'code128bc'  : return (new Encoders\Code)->code_128_encode($data,-2,false);
-                        case 'ean128'     : return (new Encoders\Code)->code_128_encode($data, 0, true);
-                        case 'ean128a'    : return (new Encoders\Code)->code_128_encode($data, 1, true);
-                        case 'ean128b'    : return (new Encoders\Code)->code_128_encode($data, 2, true);
-                        case 'ean128c'    : return (new Encoders\Code)->code_128_encode($data, 3, true);
-                        case 'ean128ac'   : return (new Encoders\Code)->code_128_encode($data,-1, true);
-                        case 'ean128bc'   : return (new Encoders\Code)->code_128_encode($data,-2, true);
+                        case 'ean13'      : return (new Encoders\UPC)->ean_13_encode($data, ' ');
+                        case 'ean13pad'   : return (new Encoders\UPC)->ean_13_encode($data, '>');
+                        case 'code39'     : return (new Encoders\Code39)->code_39_encode($data);
+                        case 'code39ascii': return (new Encoders\Code39)->code_39_ascii_encode($data);
+                        case 'code93'     : return (new Encoders\Code93)->code_93_encode($data);
+                        case 'code93ascii': return (new Encoders\Code93)->code_93_ascii_encode($data);
+                        case 'code128'    : return (new Encoders\Code128)->code_128_encode($data, 0,false);
+                        case 'code128a'   : return (new Encoders\Code128)->code_128_encode($data, 1,false);
+                        case 'code128b'   : return (new Encoders\Code128)->code_128_encode($data, 2,false);
+                        case 'code128c'   : return (new Encoders\Code128)->code_128_encode($data, 3,false);
+                        case 'code128ac'  : return (new Encoders\Code128)->code_128_encode($data,-1,false);
+                        case 'code128bc'  : return (new Encoders\Code128)->code_128_encode($data,-2,false);
+                        case 'ean128'     : return (new Encoders\Code128)->code_128_encode($data, 0, true);
+                        case 'ean128a'    : return (new Encoders\Code128)->code_128_encode($data, 1, true);
+                        case 'ean128b'    : return (new Encoders\Code128)->code_128_encode($data, 2, true);
+                        case 'ean128c'    : return (new Encoders\Code128)->code_128_encode($data, 3, true);
+                        case 'ean128ac'   : return (new Encoders\Code128)->code_128_encode($data,-1, true);
+                        case 'ean128bc'   : return (new Encoders\Code128)->code_128_encode($data,-2, true);
                         case 'codabar'    : return (new Encoders\Codebar)->codabar_encode($data);
-                        case 'itf'        : return (new Encoders\ITF)->itf_encode($data);
-                        case 'itf14'      : return (new Encoders\ITF)->itf_encode($data);
+                        case 'i25+'       : return (new Encoders\ITF)->i25check_encode($data);
+                        case 'i25'        : return (new Encoders\ITF)->i25_encode($data);
+                        case 's25+'       : return (new Encoders\ITF)->s25check_encode($data);
+                        case 's25'        : return (new Encoders\ITF)->s25_encode($data);
                         case 'qr'         : return (new Encoders\Qrcode)->qr_encode($data, 0);
                         case 'qrl'        : return (new Encoders\Qrcode)->qr_encode($data, 0);
                         case 'qrm'        : return (new Encoders\Qrcode)->qr_encode($data, 1);
