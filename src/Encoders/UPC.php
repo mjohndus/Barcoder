@@ -30,281 +30,432 @@ namespace Barcoder\Encoders;
 
 class UPC {
 
+        protected const upc_alphabet = [
+                '0' => [3, 2, 1, 1],
+                '1' => [2, 2, 2, 1],
+                '2' => [2, 1, 2, 2],
+                '3' => [1, 4, 1, 1],
+                '4' => [1, 1, 3, 2],
+                '5' => [1, 2, 3, 1],
+                '6' => [1, 1, 1, 4],
+                '7' => [1, 3, 1, 2],
+                '8' => [1, 2, 1, 3],
+                '9' => [3, 1, 1, 2],
+        ];
+
+        protected const upc_parity = [
+                '0' => [1, 1, 1, 0, 0, 0],
+                '1' => [1, 1, 0, 1, 0, 0],
+                '2' => [1, 1, 0, 0, 1, 0],
+                '3' => [1, 1, 0, 0, 0, 1],
+                '4' => [1, 0, 1, 1, 0, 0],
+                '5' => [1, 0, 0, 1, 1, 0],
+                '6' => [1, 0, 0, 0, 1, 1],
+                '7' => [1, 0, 1, 0, 1, 0],
+                '8' => [1, 0, 1, 0, 0, 1],
+                '9' => [1, 0, 0, 1, 0, 1],
+        ];
+
+        protected const ean2_parity = [
+                '0' => [0, 0],
+                '1' => [0, 1],
+                '2' => [1, 0],
+                '3' => [1, 1],
+        ];
+
         /* - - - - UPC FAMILY ENCODER - - - - */
 
         public function upc_a_encode($data) {
                 $data = $this->upc_a_normalize($data);
-                $blocks = array();
+                $blocks = [];
                 /* Quiet zone, start, first digit. */
                 $digit = substr($data, 0, 1);
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array($digit, 0, 1/3)
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(0, $this->upc_alphabet[$digit][0], 1),
-                                array(1, $this->upc_alphabet[$digit][1], 1),
-                                array(0, $this->upc_alphabet[$digit][2], 1),
-                                array(1, $this->upc_alphabet[$digit][3], 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => [$digit, 0, 1/3]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [0, $this::upc_alphabet[$digit][0], 1],
+                                [1, $this::upc_alphabet[$digit][1], 1],
+                                [0, $this::upc_alphabet[$digit][2], 1],
+                                [1, $this::upc_alphabet[$digit][3], 1],
+                        ]
+                ];
                 /* Left zone. */
                 for ($i = 1; $i < 6; $i++) {
                         $digit = substr($data, $i, 1);
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(0, $this->upc_alphabet[$digit][0], 1),
-                                        array(1, $this->upc_alphabet[$digit][1], 1),
-                                        array(0, $this->upc_alphabet[$digit][2], 1),
-                                        array(1, $this->upc_alphabet[$digit][3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (6 - $i) / 6)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [0, $this::upc_alphabet[$digit][0], 1],
+                                        [1, $this::upc_alphabet[$digit][1], 1],
+                                        [0, $this::upc_alphabet[$digit][2], 1],
+                                        [1, $this::upc_alphabet[$digit][3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (6 - $i) / 6]
+                        ];
                 }
                 /* Middle. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                        ]
+                ];
                 /* Right zone. */
                 for ($i = 6; $i < 11; $i++) {
                         $digit = substr($data, $i, 1);
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(1, $this->upc_alphabet[$digit][0], 1),
-                                        array(0, $this->upc_alphabet[$digit][1], 1),
-                                        array(1, $this->upc_alphabet[$digit][2], 1),
-                                        array(0, $this->upc_alphabet[$digit][3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (11 - $i) / 6)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [1, $this::upc_alphabet[$digit][0], 1],
+                                        [0, $this::upc_alphabet[$digit][1], 1],
+                                        [1, $this::upc_alphabet[$digit][2], 1],
+                                        [0, $this::upc_alphabet[$digit][3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (11 - $i) / 6]
+                        ];
                 }
                 /* Last digit, end, quiet zone. */
                 $digit = substr($data, 11, 1);
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, $this->upc_alphabet[$digit][0], 1),
-                                array(0, $this->upc_alphabet[$digit][1], 1),
-                                array(1, $this->upc_alphabet[$digit][2], 1),
-                                array(0, $this->upc_alphabet[$digit][3], 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array($digit, 0, 2/3)
-                );
+                $blocks[] = [
+                        'm' => [
+                                [1, $this::upc_alphabet[$digit][0], 1],
+                                [0, $this::upc_alphabet[$digit][1], 1],
+                                [1, $this::upc_alphabet[$digit][2], 1],
+                                [0, $this::upc_alphabet[$digit][3], 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => [$digit, 0, 2/3]
+                ];
                 /* Return code. */
-                return array('g' => 'l', 'b' => $blocks);
+                return ['g' => 'l', 'b' => $blocks];
         }
 
         public function upc_e_encode($data) {
                 $data = $this->upc_e_normalize($data);
-                $blocks = array();
+                $blocks = [];
                 /* Quiet zone, start. */
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0))
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [[2, 9, 0]]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
                 /* Digits */
                 $system = substr($data, 0, 1) & 1;
                 $check = substr($data, 7, 1);
-                $pbits = $this->upc_parity[$check];
+                $pbits = $this::upc_parity[$check];
                 for ($i = 1; $i < 7; $i++) {
                         $digit = substr($data, $i, 1);
                         $pbit = $pbits[$i - 1] ^ $system;
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(0, $this->upc_alphabet[$digit][$pbit ? 3 : 0], 1),
-                                        array(1, $this->upc_alphabet[$digit][$pbit ? 2 : 1], 1),
-                                        array(0, $this->upc_alphabet[$digit][$pbit ? 1 : 2], 1),
-                                        array(1, $this->upc_alphabet[$digit][$pbit ? 0 : 3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (7 - $i) / 7)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (7 - $i) / 7]
+                        ];
                 }
                 /* End, quiet zone. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0))
-                );
+                $blocks[] = [
+                        'm' => [
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [[2, 9, 0]]
+                ];
                 /* Return code. */
-                return array('g' => 'l', 'b' => $blocks);
+                return ['g' => 'l', 'b' => $blocks];
         }
 
         public function ean_13_encode($data, $pad) {
                 $data = $this->ean_13_normalize($data);
-                $blocks = array();
+                $blocks = [];
                 /* Quiet zone, start, first digit (as parity). */
                 $system = substr($data, 0, 1);
                 $pbits = (
                         (int)$system ?
-                        $this->upc_parity[$system] :
-                        array(1, 1, 1, 1, 1, 1)
+                        $this::upc_parity[$system] :
+                        [1, 1, 1, 1, 1, 1]
                 );
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array($system, 0.5, 1/3)
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => [$system, 0.5, 1/3]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
                 /* Left zone. */
                 for ($i = 1; $i < 7; $i++) {
                         $digit = substr($data, $i, 1);
                         $pbit = $pbits[$i - 1];
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(0, $this->upc_alphabet[$digit][$pbit ? 0 : 3], 1),
-                                        array(1, $this->upc_alphabet[$digit][$pbit ? 1 : 2], 1),
-                                        array(0, $this->upc_alphabet[$digit][$pbit ? 2 : 1], 1),
-                                        array(1, $this->upc_alphabet[$digit][$pbit ? 3 : 0], 1),
-                                ),
-                                'l' => array($digit, 0.5, (7 - $i) / 7)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                ],
+                                'l' => [$digit, 0.5, (7 - $i) / 7]
+                        ];
                 }
                 /* Middle. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                        ]
+                ];
                 /* Right zone. */
                 for ($i = 7; $i < 13; $i++) {
                         $digit = substr($data, $i, 1);
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(1, $this->upc_alphabet[$digit][0], 1),
-                                        array(0, $this->upc_alphabet[$digit][1], 1),
-                                        array(1, $this->upc_alphabet[$digit][2], 1),
-                                        array(0, $this->upc_alphabet[$digit][3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (13 - $i) / 7)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [1, $this::upc_alphabet[$digit][0], 1],
+                                        [0, $this::upc_alphabet[$digit][1], 1],
+                                        [1, $this::upc_alphabet[$digit][2], 1],
+                                        [0, $this::upc_alphabet[$digit][3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (13 - $i) / 7]
+                        ];
                 }
                 /* End, quiet zone. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array($pad, 0.5, 2/3)
-                );
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => [$pad, 0.5, 2/3]
+                ];
                 /* Return code. */
-                return array('g' => 'l', 'b' => $blocks);
+                return ['g' => 'l', 'b' => $blocks];
         }
 
         public function ean_8_encode($data) {
                 $data = $this->ean_8_normalize($data);
-                $blocks = array();
+                $blocks = [];
                 /* Quiet zone, start. */
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array('<', 0.5, 1/3)
-                );
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => ['<', 0.5, 1/3]
+                ];
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
                 /* Left zone. */
                 for ($i = 0; $i < 4; $i++) {
                         $digit = substr($data, $i, 1);
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(0, $this->upc_alphabet[$digit][0], 1),
-                                        array(1, $this->upc_alphabet[$digit][1], 1),
-                                        array(0, $this->upc_alphabet[$digit][2], 1),
-                                        array(1, $this->upc_alphabet[$digit][3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (4 - $i) / 5)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [0, $this::upc_alphabet[$digit][0], 1],
+                                        [1, $this::upc_alphabet[$digit][1], 1],
+                                        [0, $this::upc_alphabet[$digit][2], 1],
+                                        [1, $this::upc_alphabet[$digit][3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (4 - $i) / 5]
+                        ];
                 }
                 /* Middle. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                        )
-                );
+                $blocks[] = [
+                        'm' => [
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [0, 1, 1],
+                        ]
+                ];
                 /* Right zone. */
                 for ($i = 4; $i < 8; $i++) {
                         $digit = substr($data, $i, 1);
-                        $blocks[] = array(
-                                'm' => array(
-                                        array(1, $this->upc_alphabet[$digit][0], 1),
-                                        array(0, $this->upc_alphabet[$digit][1], 1),
-                                        array(1, $this->upc_alphabet[$digit][2], 1),
-                                        array(0, $this->upc_alphabet[$digit][3], 1),
-                                ),
-                                'l' => array($digit, 0.5, (8 - $i) / 5)
-                        );
+                        $blocks[] = [
+                                'm' => [
+                                        [1, $this::upc_alphabet[$digit][0], 1],
+                                        [0, $this::upc_alphabet[$digit][1], 1],
+                                        [1, $this::upc_alphabet[$digit][2], 1],
+                                        [0, $this::upc_alphabet[$digit][3], 1],
+                                ],
+                                'l' => [$digit, 0.5, (8 - $i) / 5]
+                        ];
                 }
                 /* End, quiet zone. */
-                $blocks[] = array(
-                        'm' => array(
-                                array(1, 1, 1),
-                                array(0, 1, 1),
-                                array(1, 1, 1),
-                        )
-                );
-                $blocks[] = array(
-                        'm' => array(array(2, 9, 0)),
-                        'l' => array('>', 0.5, 2/3)
-                );
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                $blocks[] = [
+                        'm' => [[2, 9, 0]],
+                        'l' => ['>', 0.5, 2/3]
+                ];
                 /* Return code. */
-                return array('g' => 'l', 'b' => $blocks);
+                return ['g' => 'l', 'b' => $blocks];
+        }
+
+        public function ean_5_encode($data) {
+                //$data = $this->ean_5_normalize($data);
+                $check = (((3 * ((int) $data[0] + (int) $data[2] + (int) $data[4])) + (9 * ((int) $data[1] + (int) $data[3]))) % 10);
+                $pbits = $this::upc_parity[$check];
+                unset($pbits[0]);
+                $pbits = array_values($pbits);
+                $blocks = [];
+                /* start. */
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                /* Left zone. */
+                $digit =  substr($data, 0, 1);
+                $pbit = $pbits[0];
+                $blocks[] = [
+                        'm' => [
+                                [0, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                [0, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                        ],
+                        'l' => [$digit, 0.5, 1/2]
+                        //'l' => [$digit, 0.5, (5 - 0) / 7]
+                ];
+                /* zone + seperator */
+                for ($i = 1; $i < 5; $i++) {
+                        $digit = substr($data, $i, 1);
+                        $pbit = $pbits[$i];
+                        $blocks[] = [
+                                'm' => [
+                                        [0, 1, 1],
+                                        [1, 1, 1],
+                                ]
+                        ];
+                        $blocks[] = [
+                                'm' => [
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                        [0, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                        [1, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                                ],
+                                'l' => [$digit, 0.5, 1/2]
+//                                'l' => [$digit, 0.5, (5 - $i) / 7]
+                        ];
+                }
+                /* Return code. */
+                return ['g' => 'l', 'b' => $blocks];
+        }
+
+        public function ean_2_encode($data) {
+                //$data = $this->ean_2_normalize($data);
+                $data = preg_replace('/[^0-9*]/', '', $data);
+                $data_length = 2;
+
+                if (strlen($data) < 2) {
+                    $data = str_pad($data, $data_length, '0', STR_PAD_LEFT);
+                }
+
+                $check = $data % 4;
+                $pbits = $this::ean2_parity[$check];
+                $blocks = [];
+                /* start. */
+                $blocks[] = [
+                        'm' => [
+                                [1, 1, 1],
+                                [0, 1, 1],
+                                [1, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                /* Left zone. */
+                $digit =  substr($data, 0, 1);
+                $pbit = $pbits[0];
+/*
+echo $pbit.'<br>';
+echo $digit.'<br>';
+echo $this::upc_alphabet[$digit][$pbit ? 3 : 0].'<br>';
+echo $this::upc_alphabet[$digit][$pbit ? 2 : 1].'<br>';
+echo $this::upc_alphabet[$digit][$pbit ? 1 : 2].'<br>';
+echo $this::upc_alphabet[$digit][$pbit ? 0 : 3].'<br>';
+*/
+                $blocks[] = [
+                        'm' => [
+                                [0, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                [0, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                        ],
+                        'l' => [$digit, 0.5, 1/2]
+                ];
+                /* Middle. separator. */
+                $blocks[] = [
+                        'm' => [
+                                [0, 1, 1],
+                                [1, 1, 1],
+                        ]
+                ];
+                /* Right zone. */
+                $digit = substr($data, 1, 1);
+                $pbit = $pbits[1];
+                $blocks[] = [
+                        'm' => [
+                                [0, $this::upc_alphabet[$digit][$pbit ? 3 : 0], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 2 : 1], 1],
+                                [0, $this::upc_alphabet[$digit][$pbit ? 1 : 2], 1],
+                                [1, $this::upc_alphabet[$digit][$pbit ? 0 : 3], 1],
+                        ],
+                        'l' => [$digit, 0.5, 1/2]
+                ];
+                /* Return code. */
+                return ['g' => 'l', 'b' => $blocks];
         }
 
         private function upc_a_normalize($data) {
@@ -451,30 +602,4 @@ class UPC {
                 }
                 return $data;
         }
-
-        private $upc_alphabet = array(
-                '0' => array(3, 2, 1, 1),
-                '1' => array(2, 2, 2, 1),
-                '2' => array(2, 1, 2, 2),
-                '3' => array(1, 4, 1, 1),
-                '4' => array(1, 1, 3, 2),
-                '5' => array(1, 2, 3, 1),
-                '6' => array(1, 1, 1, 4),
-                '7' => array(1, 3, 1, 2),
-                '8' => array(1, 2, 1, 3),
-                '9' => array(3, 1, 1, 2),
-        );
-
-        private $upc_parity = array(
-                '0' => array(1, 1, 1, 0, 0, 0),
-                '1' => array(1, 1, 0, 1, 0, 0),
-                '2' => array(1, 1, 0, 0, 1, 0),
-                '3' => array(1, 1, 0, 0, 0, 1),
-                '4' => array(1, 0, 1, 1, 0, 0),
-                '5' => array(1, 0, 0, 1, 1, 0),
-                '6' => array(1, 0, 0, 0, 1, 1),
-                '7' => array(1, 0, 1, 0, 1, 0),
-                '8' => array(1, 0, 1, 0, 0, 1),
-                '9' => array(1, 0, 0, 1, 0, 1),
-        );
 }
