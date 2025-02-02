@@ -28,141 +28,23 @@ DEALINGS IN THE SOFTWARE.
 
 namespace Barcoder\Encoders;
 
-class Code128 {
+/**
+ * Barcoder\Encoders
+ *
+ * Barcode Type class
+ *
+ * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+ * @SuppressWarnings("PHPMD.NPathComplexity")
+ * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.UnusedPrivateMethod")
+ *
+ */
 
+class Code128
+{
         /* - - - - CODE 128 ENCODER - - - - */
 
-        private function code_128_encode($data, $dstate, $fnc1) {
-                $data = preg_replace('/[\x80-\xFF]/', '', $data);
-                $label = preg_replace('/[\x00-\x1F\x7F]/', ' ', $data);
-                $chars = $this->code_128_normalize($data, $dstate, $fnc1);
-                $checksum = $chars[0] % 103;
-                for ($i = 1, $n = count($chars); $i < $n; $i++) {
-                        $checksum += $i * $chars[$i];
-                        $checksum %= 103;
-                }
-                $chars[] = $checksum;
-                $chars[] = 106;
-                $modules = array();
-                $modules[] = array(0, 10, 0);
-                foreach ($chars as $char) {
-                        $block = $this->code_128_alphabet[$char];
-                        foreach ($block as $i => $module) {
-                                $modules[] = array(($i & 1) ^ 1, $module, 1);
-                        }
-                }
-                $modules[] = array(0, 10, 0);
-                $blocks = array(array('m' => $modules, 'l' => array($label)));
-                return array('g' => 'l', 'b' => $blocks);
-        }
-
-        private function code_128_normalize($data, $dstate, $fnc1) {
-                $detectcba = '/(^[0-9]{4,}|^[0-9]{2}$)|([\x60-\x7F])|([\x00-\x1F])/';
-                $detectc = '/(^[0-9]{6,}|^[0-9]{4,}$)/';
-                $detectba = '/([\x60-\x7F])|([\x00-\x1F])/';
-                $consumec = '/(^[0-9]{2})/';
-                $state = (($dstate > 0 && $dstate < 4) ? $dstate : 0);
-                $abstate = ((abs($dstate) == 2) ? 2 : 1);
-                $chars = array(102 + ($state ? $state : $abstate));
-                if ($fnc1) $chars[] = 102;
-                while (strlen($data)) {
-                        switch ($state) {
-                                case 0:
-                                        if (preg_match($detectcba, $data, $m)) {
-                                                if ($m[1]) {
-                                                        $state = 3;
-                                                } else if ($m[2]) {
-                                                        $state = 2;
-                                                } else {
-                                                        $state = 1;
-                                                }
-                                        } else {
-                                                $state = $abstate;
-                                        }
-                                        $chars = array(102 + $state);
-                                        if ($fnc1) $chars[] = 102;
-                                        break;
-                                case 1:
-                                        if ($dstate <= 0 && preg_match($detectc, $data, $m)) {
-                                                if (strlen($m[0]) % 2) {
-                                                        $data = substr($data, 1);
-                                                        $chars[] = 16 + substr($m[0], 0, 1);
-                                                }
-                                                $state = 3;
-                                                $chars[] = 99;
-                                        } else {
-                                                $ch = ord(substr($data, 0, 1));
-                                                $data = substr($data, 1);
-                                                if ($ch < 32) {
-                                                        $chars[] = $ch + 64;
-                                                } else if ($ch < 96) {
-                                                        $chars[] = $ch - 32;
-                                                } else {
-                                                        if (preg_match($detectba, $data, $m)) {
-                                                                if ($m[1]) {
-                                                                        $state = 2;
-                                                                        $chars[] = 100;
-                                                                } else {
-                                                                        $chars[] = 98;
-                                                                }
-                                                        } else {
-                                                                $chars[] = 98;
-                                                        }
-                                                        $chars[] = $ch - 32;
-                                                }
-                                        }
-                                        break;
-                                case 2:
-                                        if ($dstate <= 0 && preg_match($detectc, $data, $m)) {
-                                                if (strlen($m[0]) % 2) {
-                                                        $data = substr($data, 1);
-                                                        $chars[] = 16 + substr($m[0], 0, 1);
-                                                }
-                                                $state = 3;
-                                                $chars[] = 99;
-                                        } else {
-                                                $ch = ord(substr($data, 0, 1));
-                                                $data = substr($data, 1);
-                                                if ($ch >= 32) {
-                                                        $chars[] = $ch - 32;
-                                                } else {
-                                                        if (preg_match($detectba, $data, $m)) {
-                                                                if ($m[2]) {
-                                                                        $state = 1;
-                                                                        $chars[] = 101;
-                                                                } else {
-                                                                        $chars[] = 98;
-                                                                }
-                                                        } else {
-                                                                $chars[] = 98;
-                                                        }
-                                                        $chars[] = $ch + 64;
-                                                }
-                                        }
-                                        break;
-                                case 3:
-                                        if (preg_match($consumec, $data, $m)) {
-                                                $data = substr($data, 2);
-                                                $chars[] = (int)$m[0];
-                                        } else {
-                                                if (preg_match($detectba, $data, $m)) {
-                                                        if ($m[1]) {
-                                                                $state = 2;
-                                                        } else {
-                                                                $state = 1;
-                                                        }
-                                                } else {
-                                                        $state = $abstate;
-                                                }
-                                                $chars[] = 102 - $state;
-                                        }
-                                        break;
-                        }
-                }
-                return $chars;
-        }
-
-        private $code_128_alphabet = array(
+    protected const CODE_128_ALPHABET = array(
                 array(2, 1, 2, 2, 2, 2), array(2, 2, 2, 1, 2, 2),
                 array(2, 2, 2, 2, 2, 1), array(1, 2, 1, 2, 2, 3),
                 array(1, 2, 1, 3, 2, 2), array(1, 3, 1, 2, 2, 2),
@@ -218,4 +100,162 @@ class Code128 {
                 array(2, 1, 1, 2, 1, 4), array(2, 1, 1, 2, 3, 2),
                 array(2, 3, 3, 1, 1, 1, 2)
         );
+
+        /**
+         *
+         * @return array<mixed>
+         */
+    public function code_128_encode(string $data, int $dstate, bool $fnc1): array
+    {
+        $data = (string) preg_replace('/[\x80-\xFF]/', '', $data);
+        $label = preg_replace('/[\x00-\x1F\x7F]/', ' ', $data);
+        $chars = $this->code_128_normalize($data, $dstate, $fnc1);
+        $checksum = (int) $chars[0] % 103;
+        for ($i = 1, $n = count($chars); $i < $n; $i++) {
+            $checksum += $i * (int) $chars[$i];
+            $checksum %= 103;
+        }
+        $chars[] = $checksum;
+        $chars[] = 106;
+        $modules = [];
+        $modules[] = [0, 10, 0];
+        foreach ($chars as $char) {
+            $block = $this::CODE_128_ALPHABET[$char];
+            foreach ($block as $i => $module) {
+//echo '<pre>';
+//print_r($i);
+//echo '</pre>';
+                //$modules[] = array(($i & 1) ^ 1, $module, 1);
+                $modules[] = [$i & 1 ^ 1, $module, 1];
+            }
+//echo '<pre>';
+//print_r($modules);
+//echo '</pre>';
+        }
+        $modules[] = [0, 10, 0];
+        $blocks = [['m' => $modules, 'l' => [$label]]];
+//echo '<pre>';
+//print_r($blocks);
+//echo '</pre>';
+        return ['g' => 'l', 'b' => $blocks];
+    }
+
+    private function cas1(): void
+    {
+    }
+
+        /**
+         *
+         * @return array<int>
+         */
+    private function code_128_normalize(string $data, int $dstate, bool $fnc1): array
+    {
+            $detectcba = '/(^[0-9]{4,}|^[0-9]{2}$)|([\x60-\x7F])|([\x00-\x1F])/';
+            $detectc = '/(^[0-9]{6,}|^[0-9]{4,}$)/';
+            $detectba = '/([\x60-\x7F])|([\x00-\x1F])/';
+            $consumec = '/(^[0-9]{2})/';
+            $state = (($dstate > 0 && $dstate < 4) ? $dstate : 0);
+            $abstate = ((abs($dstate) == 2) ? 2 : 1);
+            $chars = [102 + ($state ? $state : $abstate)];
+        if ($fnc1) {
+            $chars[] = 102;
+        }
+        while (strlen($data)) {
+            switch ($state) {
+                case 0:
+                    if (preg_match($detectcba, $data, $mem)) {
+                        if ($mem[1]) {
+                                    $state = 3;
+                        } elseif ($mem[2]) {
+                                        $state = 2;
+                        } else {
+                            $state = 1;
+                        }
+                    } else {
+                            $state = $abstate;
+                    }
+                        $chars = [102 + $state];
+                    if ($fnc1) {
+                        $chars[] = 102;
+                    }
+                    break;
+                case 1:
+                    if ($dstate <= 0 && preg_match($detectc, $data, $mem)) {
+                        if (strlen($mem[0]) % 2) {
+                            $data = substr($data, 1);
+                            $chars[] = 16 + ((int) substr($mem[0], 0, 1));
+                        }
+                                $state = 3;
+                                $chars[] = 99;
+                    } else {
+                                    $cha = ord(substr($data, 0, 1));
+                                    $data = substr($data, 1);
+                        if ($cha < 32) {
+                                $chars[] = $cha + 64;
+                        } elseif ($cha < 96) {
+                                $chars[] = $cha - 32;
+                        } else {
+                            if (preg_match($detectba, $data, $mem)) {
+                                if ($mem[1]) {
+                                    $state = 2;
+                                    $chars[] = 100;
+                                } else {
+                                    $chars[] = 98;
+                                }
+                            } else {
+                                    $chars[] = 98;
+                            }
+                                $chars[] = $cha - 32;
+                        }
+                    }
+                    break;
+                case 2:
+                    if ($dstate <= 0 && preg_match($detectc, $data, $mem)) {
+                        if (strlen($mem[0]) % 2) {
+                            $data = substr($data, 1);
+                            $chars[] = 16 + ((int) substr($mem[0], 0, 1));
+                        }
+                                $state = 3;
+                                $chars[] = 99;
+                    } else {
+                                    $cha = ord(substr($data, 0, 1));
+                                    $data = substr($data, 1);
+                        if ($cha >= 32) {
+                                $chars[] = $cha - 32;
+                        } else {
+                            if (preg_match($detectba, $data, $mem)) {
+                                if (isset($mem[2])) {
+                                    $state = 1;
+                                    $chars[] = 101;
+                                } else {
+                                    $chars[] = 98;
+                                }
+                            } else {
+                                    $chars[] = 98;
+                            }
+                                $chars[] = $cha + 64;
+                        }
+                    }
+                    break;
+                case 3:
+                    if (preg_match($consumec, $data, $mem)) {
+                                $data = substr($data, 2);
+                                $chars[] = (int)$mem[0];
+                    } else {
+                        if (preg_match($detectba, $data, $mem)) {
+                            if ($mem[1]) {
+                                $state = 2;
+                            } else {
+                                            $state = 1;
+                            }
+                        } else {
+                            $state = $abstate;
+                        }
+                                    $chars[] = 102 - $state;
+                    }
+                    break;
+            }
+        }
+            return $chars;
+    }
 }

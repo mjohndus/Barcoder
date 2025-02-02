@@ -28,290 +28,372 @@ DEALINGS IN THE SOFTWARE.
 
 namespace Barcoder\Encoders;
 
-class DMTX {
+/**
+ * Barcoder\Encoders
+ *
+ * Barcode Type class
+ *
+ * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+ * @SuppressWarnings("PHPMD.NPathComplexity")
+ * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
+ * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ *
+ */
 
+class DMTX
+{
         /* - - - - DATA MATRIX ENCODER - - - - */
 
-        public function dmtx_encode($data, $rect, $fnc1) {
-                list($data, $ec) = $this->dmtx_encode_data($data, $rect, $fnc1);
-                $data = $this->dmtx_encode_ec($data, $ec);
-                list($h, $w, $mtx) = $this->dmtx_create_matrix($ec, $data);
-                return array(
-                        'g' => 'm',
-                        'q' => array(1, 1, 1, 1),
-                        's' => array($w, $h),
-                        'b' => $mtx
-                );
-        }
+        /**
+         *
+         * @return array<mixed>
+         */
+    public function dmtx_encode(string $data, int $rect, bool $fnc1): array
+    {
 
-        private function dmtx_encode_data($data, $rect, $fnc1) {
-                /* Convert to data codewords. */
-                $edata = ($fnc1 ? array(232) : array());
-                $length = strlen($data);
-                $offset = 0;
-                while ($offset < $length) {
-                        $ch1 = ord(substr($data, $offset, 1));
+           list($data, $ec1) = $this->dmtx_encode_data($data, $rect, $fnc1);
+
+           $data = $this->dmtx_encode_ec($data, $ec1);
+
+           list($hhh, $www, $mtx) = $this->dmtx_create_matrix($ec1, $data);
+
+           return array(
+                   'g' => 'm',
+                   'q' => array(1, 1, 1, 1),
+                   's' => array($www, $hhh),
+                   'b' => $mtx
+           );
+    }
+
+        /**
+         *
+         * @return array<int, array<int>>
+         */
+    private function dmtx_encode_data(string $data, int $rect, bool $fnc1): array
+    {
+            /* Convert to data codewords. */
+            $edata = ($fnc1 ? array(232) : array());
+            $length = strlen($data);
+            $offset = 0;
+        while ($offset < $length) {
+                $ch1 = ord(substr($data, $offset, 1));
+                $offset++;
+            if ($ch1 >= 0x30 && $ch1 <= 0x39) {
+                $ch2 = ord(substr($data, $offset, 1));
+                if ($ch2 >= 0x30 && $ch2 <= 0x39) {
                         $offset++;
-                        if ($ch1 >= 0x30 && $ch1 <= 0x39) {
-                                $ch2 = ord(substr($data, $offset, 1));
-                                if ($ch2 >= 0x30 && $ch2 <= 0x39) {
-                                        $offset++;
-                                        $edata[] = (($ch1 - 0x30) * 10) + ($ch2 - 0x30) + 130;
-                                } else {
-                                        $edata[] = $ch1 + 1;
-                                }
-                        } else if ($ch1 < 0x80) {
-                                $edata[] = $ch1 + 1;
-                        } else {
-                                $edata[] = 235;
-                                $edata[] = ($ch1 - 0x80) + 1;
-                        }
+                        $edata[] = (($ch1 - 0x30) * 10) + ($ch2 - 0x30) + 130;
+                } else {
+                        $edata[] = $ch1 + 1;
                 }
-                /* Add padding. */
-                $length = count($edata);
-                $ec_params = $this->dmtx_detect_version($length, $rect);
-                if ($length > $ec_params[0]) {
-                        $length = $ec_params[0];
-                        $edata = array_slice($edata, 0, $length);
-                        if ($edata[$length - 1] == 235) {
-                                $edata[$length - 1] = 129;
-                        }
-                } else if ($length < $ec_params[0]) {
-                        $length++;
-                        $edata[] = 129;
-                        while ($length < $ec_params[0]) {
-                                $length++;
-                                $r = (($length * 149) % 253) + 1;
-                                $edata[] = ($r + 129) % 254;
-                        }
-                }
-                /* Return. */
-                return array($edata, $ec_params);
+            } elseif ($ch1 < 0x80) {
+                $edata[] = $ch1 + 1;
+            } else {
+                    $edata[] = 235;
+                    $edata[] = ($ch1 - 0x80) + 1;
+            }
         }
+            /* Add padding. */
+            $length = count($edata);
+            $ec_params = $this->dmtx_detect_version($length, $rect);
+        if ($length > $ec_params[0]) {
+                $length = $ec_params[0];
+                $edata = array_slice($edata, 0, $length);
+            if ($edata[$length - 1] == 235) {
+                    $edata[$length - 1] = 129;
+            }
+        } elseif ($length < $ec_params[0]) {
+                $length++;
+                $edata[] = 129;
+            while ($length < $ec_params[0]) {
+                    $length++;
+                    $rrr = (($length * 149) % 253) + 1;
+                    $edata[] = ($rrr + 129) % 254;
+            }
+        }
+//echo '<pre>';
+//print_r($ec_params);
+//echo '</pre>';
+            /* Return. */
+            return array($edata, $ec_params);
+    }
 
-        private function dmtx_detect_version($length, $rect) {
-                for ($i = ($rect ? 24 : 0), $j = ($rect ? 30 : 24); $i < $j; $i++) {
-                        if ($length <= $this->dmtx_ec_params[$i][0]) {
-                                return $this->dmtx_ec_params[$i];
+        /**
+         *
+         * @return array<int>
+         */
+    private function dmtx_detect_version(int $length, int $rect): array
+    {
+        for ($i = ($rect ? 24 : 0), $j = ($rect ? 30 : 24); $i < $j; $i++) {
+            if ($length <= $this::DMTX_EC_PARAMS[$i][0]) {
+                return $this::DMTX_EC_PARAMS[$i];
+            }
+        }
+            return $this::DMTX_EC_PARAMS[$j - 1];
+    }
+
+         //@phpstan-ignore missingType.parameter
+         //@param array int $data parameters
+
+        /**
+         *
+         * @param array{int}
+         * @param array{int}
+         *
+         * @return array<int>
+         */
+    private function dmtx_encode_ec(array $data, array $ec_params): array
+    {
+//echo '<pre>';
+//print_r($data);
+//echo '</pre>';
+            $blocks = $this->dmtx_ec_split($data, $ec_params);
+        for ($i = 0, $n = count($blocks); $i < $n; $i++) {
+                $ec_block = $this->dmtx_ec_divide($blocks[$i], $ec_params);
+                $blocks[$i] = array_merge($blocks[$i], $ec_block);
+        }
+            return $this->dmtx_ec_interleave($blocks);
+    }
+
+        /**
+         * @return array<int<0, max>, list>
+         */
+    private function dmtx_ec_split($data, $ec_params): array
+    {
+//echo '<pre>';
+//print_r($data);
+//echo '</pre>';
+            $blocks = array();
+            $num_blocks = $ec_params[2] + $ec_params[4];
+        for ($i = 0; $i < $num_blocks; $i++) {
+                $blocks[$i] = array();
+        }
+        for ($i = 0, $length = count($data); $i < $length; $i++) {
+                $blocks[$i % $num_blocks][] = $data[$i];
+        }
+//echo '<pre>';
+//print_r($blocks);
+//echo '</pre>';
+            return $blocks;
+    }
+
+        /**
+         *
+         * @return array<int, int, int>
+         */
+    private function dmtx_ec_divide($data, $ec_params): array
+    {
+//echo '<pre>';
+//print_r($data);
+//echo '</pre>';
+            $num_data = count($data);
+            $num_error = $ec_params[1];
+            $generator = $this::DMTX_EC_POLYNOMIALS[$num_error];
+            $message = $data;
+        for ($i = 0; $i < $num_error; $i++) {
+                $message[] = 0;
+        }
+        for ($i = 0; $i < $num_data; $i++) {
+            if ($message[$i]) {
+                    $leadterm = $this::DMTX_LOG[$message[$i]];
+                for ($j = 0; $j <= $num_error; $j++) {
+                    $term = ($generator[$j] + $leadterm) % 255;
+                    $message[$i + $j] ^= $this::DMTX_EXP[$term];
+                }
+            }
+        }
+//echo '<pre>';
+//print_r($num_error);
+//echo '</pre>';
+            return array_slice($message, $num_data, $num_error);
+    }
+
+    private function dmtx_ec_interleave($blocks)
+    {
+            $data = array();
+            $num_blocks = count($blocks);
+        for ($offset = 0; true; $offset++) {
+                $break = true;
+            for ($i = 0; $i < $num_blocks; $i++) {
+                if (isset($blocks[$i][$offset])) {
+                        $data[] = $blocks[$i][$offset];
+                        $break = false;
+                }
+            }
+            if ($break) {
+                break;
+            }
+        }
+            return $data;
+    }
+
+    private function dmtx_create_matrix($ec_params, $data)
+    {
+            /* Create matrix. */
+            $rheight = $ec_params[8] + 2;
+            $rwidth = $ec_params[9] + 2;
+            $height = $ec_params[6] * $rheight;
+            $width = $ec_params[7] * $rwidth;
+            $bitmap = array();
+        for ($y = 0; $y < $height; $y++) {
+                $row = array();
+            for ($x = 0; $x < $width; $x++) {
+                $row[] = ((
+                        ((($x + $y) % 2) == 0) ||
+                        (($x % $rwidth) == 0) ||
+                        (($y % $rheight) == ($rheight - 1))
+                ) ? 1 : 0);
+            }
+                $bitmap[] = $row;
+        }
+            /* Create data region. */
+            $rows = $ec_params[6] * $ec_params[8];
+            $cols = $ec_params[7] * $ec_params[9];
+            $matrix = array();
+        for ($y = 0; $y < $rows; $y++) {
+                $row = array();
+            for ($x = 0; $x < $width; $x++) {
+                    $row[] = null;
+            }
+                $matrix[] = $row;
+        }
+//                }
+            $this->dmtx_place_data($matrix, $rows, $cols, $data);
+            /* Copy into matrix. */
+        for ($yy = 0; $yy < $ec_params[6]; $yy++) {
+            for ($xx = 0; $xx < $ec_params[7]; $xx++) {
+                for ($y = 0; $y < $ec_params[8]; $y++) {
+                    for ($x = 0; $x < $ec_params[9]; $x++) {
+                                $row = $yy * $ec_params[8] + $y;
+                                $col = $xx * $ec_params[9] + $x;
+                                $bbb = $matrix[$row][$col];
+                        if (is_null($bbb)) {
+                            continue;
                         }
+                                $row = $yy * $rheight + $y + 1;
+                                $col = $xx * $rwidth + $x + 1;
+                                $bitmap[$row][$col] = $bbb;
+                    }
                 }
-                return $this->dmtx_ec_params[$j - 1];
+            }
         }
+            /* Return matrix. */
+            return array($height, $width, $bitmap);
+    }
 
-        private function dmtx_encode_ec($data, $ec_params) {
-                $blocks = $this->dmtx_ec_split($data, $ec_params);
-                for ($i = 0, $n = count($blocks); $i < $n; $i++) {
-                        $ec_block = $this->dmtx_ec_divide($blocks[$i], $ec_params);
-                        $blocks[$i] = array_merge($blocks[$i], $ec_block);
+    private function dmtx_place_data(&$mtx, $rows, $cols, $data)
+    {
+            $row = 4;
+            $col = 0;
+            $offset = 0;
+            $length = count($data);
+        while (($row < $rows || $col < $cols) && $offset < $length) {
+                /* Corner cases. Literally. */
+            if ($row == $rows && $col == 0) {
+                $this->dmtx_place_1($mtx, $rows, $cols, $data[$offset++]);
+            } elseif ($row == $rows - 2 && $col == 0 && $cols % 4 != 0) {
+                    $this->dmtx_place_2($mtx, $rows, $cols, $data[$offset++]);
+            } elseif ($row == $rows - 2 && $col == 0 && $cols % 8 == 4) {
+                    $this->dmtx_place_3($mtx, $rows, $cols, $data[$offset++]);
+            } elseif ($row == $rows + 4 && $col == 2 && $cols % 8 == 0) {
+                    $this->dmtx_place_4($mtx, $rows, $cols, $data[$offset++]);
+            }
+                /* Up and to the right. */
+            while ($row >= 0 && $col < $cols && $offset < $length) {
+                if ($row < $rows && $col >= 0 && is_null($mtx[$row][$col])) {
+                        $bbb = $data[$offset++];
+                        $this->dmtx_place_0($mtx, $rows, $cols, $row, $col, $bbb);
                 }
-                return $this->dmtx_ec_interleave($blocks);
+                    $row -= 2;
+                    $col += 2;
+            }
+                $row += 1;
+                $col += 3;
+                /* Down and to the left. */
+            while ($row < $rows && $col >= 0 && $offset < $length) {
+                if ($row >= 0 && $col < $cols && is_null($mtx[$row][$col])) {
+                        $bbb = $data[$offset++];
+                        $this->dmtx_place_0($mtx, $rows, $cols, $row, $col, $bbb);
+                }
+                    $row += 2;
+                    $col -= 2;
+            }
+                $row += 3;
+                $col += 1;
         }
+    }
+    private function dmtx_place_1(&$matrix, $rows, $cols, $bbb)
+    {
+            $matrix[$rows - 1][0] = (($bbb & 0x80) ? 1 : 0);
+            $matrix[$rows - 1][1] = (($bbb & 0x40) ? 1 : 0);
+            $matrix[$rows - 1][2] = (($bbb & 0x20) ? 1 : 0);
+            $matrix[0][$cols - 2] = (($bbb & 0x10) ? 1 : 0);
+            $matrix[0][$cols - 1] = (($bbb & 0x08) ? 1 : 0);
+            $matrix[1][$cols - 1] = (($bbb & 0x04) ? 1 : 0);
+            $matrix[2][$cols - 1] = (($bbb & 0x02) ? 1 : 0);
+            $matrix[3][$cols - 1] = (($bbb & 0x01) ? 1 : 0);
+    }
 
-        private function dmtx_ec_split($data, $ec_params) {
-                $blocks = array();
-                $num_blocks = $ec_params[2] + $ec_params[4];
-                for ($i = 0; $i < $num_blocks; $i++) {
-                        $blocks[$i] = array();
-                }
-                for ($i = 0, $length = count($data); $i < $length; $i++) {
-                        $blocks[$i % $num_blocks][] = $data[$i];
-                }
-                return $blocks;
-        }
+    private function dmtx_place_2(&$matrix, $rows, $cols, $bbb)
+    {
+            $matrix[$rows - 3][0] = (($bbb & 0x80) ? 1 : 0);
+            $matrix[$rows - 2][0] = (($bbb & 0x40) ? 1 : 0);
+            $matrix[$rows - 1][0] = (($bbb & 0x20) ? 1 : 0);
+            $matrix[0][$cols - 4] = (($bbb & 0x10) ? 1 : 0);
+            $matrix[0][$cols - 3] = (($bbb & 0x08) ? 1 : 0);
+            $matrix[0][$cols - 2] = (($bbb & 0x04) ? 1 : 0);
+            $matrix[0][$cols - 1] = (($bbb & 0x02) ? 1 : 0);
+            $matrix[1][$cols - 1] = (($bbb & 0x01) ? 1 : 0);
+    }
 
-        private function dmtx_ec_divide($data, $ec_params) {
-                $num_data = count($data);
-                $num_error = $ec_params[1];
-                $generator = $this->dmtx_ec_polynomials[$num_error];
-                $message = $data;
-                for ($i = 0; $i < $num_error; $i++) {
-                        $message[] = 0;
-                }
-                for ($i = 0; $i < $num_data; $i++) {
-                        if ($message[$i]) {
-                                $leadterm = $this->dmtx_log[$message[$i]];
-                                for ($j = 0; $j <= $num_error; $j++) {
-                                        $term = ($generator[$j] + $leadterm) % 255;
-                                        $message[$i + $j] ^= $this->dmtx_exp[$term];
-                                }
-                        }
-                }
-                return array_slice($message, $num_data, $num_error);
-        }
+    private function dmtx_place_3(&$matrix, $rows, $cols, $bbb)
+    {
+            $matrix[$rows - 3][0] = (($bbb & 0x80) ? 1 : 0);
+            $matrix[$rows - 2][0] = (($bbb & 0x40) ? 1 : 0);
+            $matrix[$rows - 1][0] = (($bbb & 0x20) ? 1 : 0);
+            $matrix[0][$cols - 2] = (($bbb & 0x10) ? 1 : 0);
+            $matrix[0][$cols - 1] = (($bbb & 0x08) ? 1 : 0);
+            $matrix[1][$cols - 1] = (($bbb & 0x04) ? 1 : 0);
+            $matrix[2][$cols - 1] = (($bbb & 0x02) ? 1 : 0);
+            $matrix[3][$cols - 1] = (($bbb & 0x01) ? 1 : 0);
+    }
 
-        private function dmtx_ec_interleave($blocks) {
-                $data = array();
-                $num_blocks = count($blocks);
-                for ($offset = 0; true; $offset++) {
-                        $break = true;
-                        for ($i = 0; $i < $num_blocks; $i++) {
-                                if (isset($blocks[$i][$offset])) {
-                                        $data[] = $blocks[$i][$offset];
-                                        $break = false;
-                                }
-                        }
-                        if ($break) break;
-                }
-                return $data;
-        }
+    private function dmtx_place_4(&$matrix, $rows, $cols, $bbb)
+    {
+            $matrix[$rows - 1][        0] = (($bbb & 0x80) ? 1 : 0);
+            $matrix[$rows - 1][$cols - 1] = (($bbb & 0x40) ? 1 : 0);
+            $matrix[        0][$cols - 3] = (($bbb & 0x20) ? 1 : 0);
+            $matrix[        0][$cols - 2] = (($bbb & 0x10) ? 1 : 0);
+            $matrix[        0][$cols - 1] = (($bbb & 0x08) ? 1 : 0);
+            $matrix[        1][$cols - 3] = (($bbb & 0x04) ? 1 : 0);
+            $matrix[        1][$cols - 2] = (($bbb & 0x02) ? 1 : 0);
+            $matrix[        1][$cols - 1] = (($bbb & 0x01) ? 1 : 0);
+    }
 
-        private function dmtx_create_matrix($ec_params, $data) {
-                /* Create matrix. */
-                $rheight = $ec_params[8] + 2;
-                $rwidth = $ec_params[9] + 2;
-                $height = $ec_params[6] * $rheight;
-                $width = $ec_params[7] * $rwidth;
-                $bitmap = array();
-                for ($y = 0; $y < $height; $y++) {
-                        $row = array();
-                        for ($x = 0; $x < $width; $x++) {
-                                $row[] = ((
-                                        ((($x + $y) % 2) == 0) ||
-                                        (($x % $rwidth) == 0) ||
-                                        (($y % $rheight) == ($rheight - 1))
-                                ) ? 1 : 0);
-                        }
-                        $bitmap[] = $row;
-                }
-                /* Create data region. */
-                $rows = $ec_params[6] * $ec_params[8];
-                $cols = $ec_params[7] * $ec_params[9];
-                $matrix = array();
-                for ($y = 0; $y < $rows; $y++) {
-                        $row = array();
-                        for ($x = 0; $x < $width; $x++) {
-                                $row[] = null;
-                        }
-                        $matrix[] = $row;
-                }
-                }
-                $this->dmtx_place_data($matrix, $rows, $cols, $data);
-                /* Copy into matrix. */
-                for ($yy = 0; $yy < $ec_params[6]; $yy++) {
-                        for ($xx = 0; $xx < $ec_params[7]; $xx++) {
-                                for ($y = 0; $y < $ec_params[8]; $y++) {
-                                        for ($x = 0; $x < $ec_params[9]; $x++) {
-                                                $row = $yy * $ec_params[8] + $y;
-                                                $col = $xx * $ec_params[9] + $x;
-                                                $b = $matrix[$row][$col];
-                                                if (is_null($b)) continue;
-                                                $row = $yy * $rheight + $y + 1;
-                                                $col = $xx * $rwidth + $x + 1;
-                                                $bitmap[$row][$col] = $b;
-                                        }
-                                }
-                        }
-                }
-                /* Return matrix. */
-                return array($height, $width, $bitmap);
-        }
+    private function dmtx_place_0(&$matrix, $rows, $cols, $row, $col, $bbb)
+    {
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 2, $col - 2, $bbb & 0x80);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 2, $col - 1, $bbb & 0x40);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 1, $col - 2, $bbb & 0x20);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 1, $col - 1, $bbb & 0x10);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 1, $col - 0, $bbb & 0x08);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 0, $col - 2, $bbb & 0x04);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 0, $col - 1, $bbb & 0x02);
+            $this->dmtx_place_b($matrix, $rows, $cols, $row - 0, $col - 0, $bbb & 0x01);
+    }
 
-        private function dmtx_place_data(&$mtx, $rows, $cols, $data) {
-                $row = 4;
-                $col = 0;
-                $offset = 0;
-                $length = count($data);
-                while (($row < $rows || $col < $cols) && $offset < $length) {
-                        /* Corner cases. Literally. */
-                        if ($row == $rows && $col == 0) {
-                                $this->dmtx_place_1($mtx, $rows, $cols, $data[$offset++]);
-                        } else if ($row == $rows - 2 && $col == 0 && $cols % 4 != 0) {
-                                $this->dmtx_place_2($mtx, $rows, $cols, $data[$offset++]);
-                        } else if ($row == $rows - 2 && $col == 0 && $cols % 8 == 4) {
-                                $this->dmtx_place_3($mtx, $rows, $cols, $data[$offset++]);
-                        } else if ($row == $rows + 4 && $col == 2 && $cols % 8 == 0) {
-                                $this->dmtx_place_4($mtx, $rows, $cols, $data[$offset++]);
-                        }
-                        /* Up and to the right. */
-                        while ($row >= 0 && $col < $cols && $offset < $length) {
-                                if ($row < $rows && $col >= 0 && is_null($mtx[$row][$col])) {
-                                        $b = $data[$offset++];
-                                        $this->dmtx_place_0($mtx, $rows, $cols, $row, $col, $b);
-                                }
-                                $row -= 2;
-                                $col += 2;
-                        }
-                        $row += 1;
-                        $col += 3;
-                        /* Down and to the left. */
-                        while ($row < $rows && $col >= 0 && $offset < $length) {
-                                if ($row >= 0 && $col < $cols && is_null($mtx[$row][$col])) {
-                                        $b = $data[$offset++];
-                                        $this->dmtx_place_0($mtx, $rows, $cols, $row, $col, $b);
-                                }
-                                $row += 2;
-                                $col -= 2;
-                        }
-                        $row += 3;
-                        $col += 1;
-                }
+    private function dmtx_place_b(&$matrix, $rows, $cols, $row, $col, $bbb)
+    {
+        if ($row < 0) {
+                $row += $rows;
+                $col += (4 - (($rows + 4) % 8));
         }
-        private function dmtx_place_1(&$matrix, $rows, $cols, $b) {
-                $matrix[$rows - 1][0] = (($b & 0x80) ? 1 : 0);
-                $matrix[$rows - 1][1] = (($b & 0x40) ? 1 : 0);
-                $matrix[$rows - 1][2] = (($b & 0x20) ? 1 : 0);
-                $matrix[0][$cols - 2] = (($b & 0x10) ? 1 : 0);
-                $matrix[0][$cols - 1] = (($b & 0x08) ? 1 : 0);
-                $matrix[1][$cols - 1] = (($b & 0x04) ? 1 : 0);
-                $matrix[2][$cols - 1] = (($b & 0x02) ? 1 : 0);
-                $matrix[3][$cols - 1] = (($b & 0x01) ? 1 : 0);
+        if ($col < 0) {
+                $col += $cols;
+                $row += (4 - (($cols + 4) % 8));
         }
-
-        private function dmtx_place_2(&$matrix, $rows, $cols, $b) {
-                $matrix[$rows - 3][0] = (($b & 0x80) ? 1 : 0);
-                $matrix[$rows - 2][0] = (($b & 0x40) ? 1 : 0);
-                $matrix[$rows - 1][0] = (($b & 0x20) ? 1 : 0);
-                $matrix[0][$cols - 4] = (($b & 0x10) ? 1 : 0);
-                $matrix[0][$cols - 3] = (($b & 0x08) ? 1 : 0);
-                $matrix[0][$cols - 2] = (($b & 0x04) ? 1 : 0);
-                $matrix[0][$cols - 1] = (($b & 0x02) ? 1 : 0);
-                $matrix[1][$cols - 1] = (($b & 0x01) ? 1 : 0);
-        }
-
-        private function dmtx_place_3(&$matrix, $rows, $cols, $b) {
-                $matrix[$rows - 3][0] = (($b & 0x80) ? 1 : 0);
-                $matrix[$rows - 2][0] = (($b & 0x40) ? 1 : 0);
-                $matrix[$rows - 1][0] = (($b & 0x20) ? 1 : 0);
-                $matrix[0][$cols - 2] = (($b & 0x10) ? 1 : 0);
-                $matrix[0][$cols - 1] = (($b & 0x08) ? 1 : 0);
-                $matrix[1][$cols - 1] = (($b & 0x04) ? 1 : 0);
-                $matrix[2][$cols - 1] = (($b & 0x02) ? 1 : 0);
-                $matrix[3][$cols - 1] = (($b & 0x01) ? 1 : 0);
-        }
-
-        private function dmtx_place_4(&$matrix, $rows, $cols, $b) {
-                $matrix[$rows - 1][        0] = (($b & 0x80) ? 1 : 0);
-                $matrix[$rows - 1][$cols - 1] = (($b & 0x40) ? 1 : 0);
-                $matrix[        0][$cols - 3] = (($b & 0x20) ? 1 : 0);
-                $matrix[        0][$cols - 2] = (($b & 0x10) ? 1 : 0);
-                $matrix[        0][$cols - 1] = (($b & 0x08) ? 1 : 0);
-                $matrix[        1][$cols - 3] = (($b & 0x04) ? 1 : 0);
-                $matrix[        1][$cols - 2] = (($b & 0x02) ? 1 : 0);
-                $matrix[        1][$cols - 1] = (($b & 0x01) ? 1 : 0);
-        }
-
-        private function dmtx_place_0(&$matrix, $rows, $cols, $row, $col, $b) {
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-2, $col-2, $b & 0x80);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-2, $col-1, $b & 0x40);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-1, $col-2, $b & 0x20);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-1, $col-1, $b & 0x10);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-1, $col-0, $b & 0x08);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-0, $col-2, $b & 0x04);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-0, $col-1, $b & 0x02);
-                $this->dmtx_place_b($matrix, $rows, $cols, $row-0, $col-0, $b & 0x01);
-        }
-
-        private function dmtx_place_b(&$matrix, $rows, $cols, $row, $col, $b) {
-                if ($row < 0) {
-                        $row += $rows;
-                        $col += (4 - (($rows + 4) % 8));
-                }
-                if ($col < 0) {
-                        $col += $cols;
-                        $row += (4 - (($cols + 4) % 8));
-                }
-                $matrix[$row][$col] = ($b ? 1 : 0);
-        }
+            $matrix[$row][$col] = ($bbb ? 1 : 0);
+    }
 
         /*  $dmtx_ec_params[] = array(                             */
         /*    total number of data codewords,                      */
@@ -325,7 +407,7 @@ class DMTX {
         /*    number of rows per data region,                      */
         /*    number of columns per data region                    */
         /*  );                                                     */
-        private $dmtx_ec_params = array(
+    protected const DMTX_EC_PARAMS = array(
                 array(    3,  5, 1,   3, 0,   0, 1, 1,  8,  8 ),
                 array(    5,  7, 1,   5, 0,   0, 1, 1, 10, 10 ),
                 array(    8, 10, 1,   8, 0,   0, 1, 1, 12, 12 ),
@@ -358,7 +440,7 @@ class DMTX {
                 array(   49, 28, 1,  49, 0,   0, 1, 2, 14, 22 ),
         );
 
-        private $dmtx_ec_polynomials = array(
+    protected const DMTX_EC_POLYNOMIALS = array(
                 5 => array(
                         0, 235, 207, 210, 244, 15
                 ),
@@ -434,9 +516,9 @@ class DMTX {
                         194, 202, 129, 10, 237, 198, 94, 176, 36, 40, 139,
                         201, 132, 219, 34, 56, 113, 52, 20, 34, 247, 15, 51
                 ),
-        ):
+        );
 
-        private $dmtx_log = array(
+    protected const DMTX_LOG = array(
                   0,   0,   1, 240,   2, 225, 241,  53,
                   3,  38, 226, 133, 242,  43,  54, 210,
                   4, 195,  39, 114, 227, 106, 134,  28,
@@ -471,7 +553,7 @@ class DMTX {
                 237, 130, 111,  20,  93, 122, 177, 150,
         );
 
-        private $dmtx_exp = array(
+    protected const DMTX_EXP = array(
                   1,   2,   4,   8,  16,  32,  64, 128,
                  45,  90, 180,  69, 138,  57, 114, 228,
                 229, 231, 227, 235, 251, 219, 155,  27,
