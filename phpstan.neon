@@ -1,0 +1,16 @@
+parameters:
+  level: 9
+  paths:
+    - src/Encoders/Codabar.php
+    - src/Encoders/Pharma.php
+    - src/Encoders/UPC.php
+    - src/Encoders/ITF.php
+    - src/Encoders/Code39.php
+    - src/Encoders/Code93.php
+    - src/Encoders/Code128.php
+    - src/Encoders/DMTX.php
+  excludePaths:
+    - vendor
+  ignoreErrors:
+  reportUnmatchedIgnoredErrors: false
+  treatPhpDocTypesAsCertain: false
