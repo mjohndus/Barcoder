@@ -37,6 +37,8 @@ namespace Barcoder\Encoders;
  * @SuppressWarnings("PHPMD.NPathComplexity")
  * @SuppressWarnings("PHPMD.ExcessiveClassLength")
  * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @SuppressWarnings("PHPMD.UnusedLocalVariable")
+ * @SuppressWarnings("CountInLoopExpression")
  *
  */
 
@@ -44,10 +46,17 @@ class Qrcode
 {
     /* - - - - QR ENCODER - - - - */
 
-    public function qr_encode($data, $ecl)
+    /**
+     *
+     * @return array<mixed>
+     */
+    public function qr_encode(string $data, int $ecl): array
     {
-        list($mode, $vers, $ecc, $data) = $this->qr_encode_data($data, $ecl);
-        $data = $this->qr_encode_ec($data, $ecc, $vers);
+        list($mode, $vers, $ecc, $data1) = $this->qr_encode_data($data, $ecl);
+//echo '<pre>';
+//print_r($data1);
+//echo '</pre>';
+        $data = $this->qr_encode_ec($data1, $ecc, $vers);
         list($size, $mtx) = $this->qr_create_matrix($vers, $data);
         list($mask, $mtx) = $this->qr_apply_best_mask($mtx, $size);
         $mtx = $this->qr_finalize_matrix($mtx, $size, $ecl, $mask, $vers);
@@ -59,7 +68,15 @@ class Qrcode
         );
     }
 
-    private function qr_encode_data($data, $ecl)
+// @var array<int, int, array<int<0, max>, int>, array<int<0, max>, int>>
+// @return array{array<int, int, array<int<0, max>, int>, array<int<0, max>, int>}
+//      * @return array{array<int<0, max>, int>, array<int<0, max>, int>}
+
+    /**
+     *
+     * @return array{int, int, array<int<0, max>, int>, array<int<0, max>, int>}
+     */
+    private function qr_encode_data(string $data, int $ecl): array
     {
         $mode = $this->qr_detect_mode($data);
         $version = $this->qr_detect_version($data, $mode, $ecl);
@@ -89,7 +106,9 @@ class Qrcode
         for ($i = 0; $i < 4; $i++) {
             $code[] = 0;
         }
+//        $coder = count($code);
         while (count($code) % 8) {
+//        while ($coder % 8) {
             $code[] = 0;
         }
         /* Convert from bit level to byte level. */
@@ -129,10 +148,13 @@ class Qrcode
             $data[] = $a ? 236 : 17;
         }
         /* Return. */
+//echo '<pre>';
+//print_r($version);
+//echo '</pre>';
         return array($mode, $version, $ec_params, $data);
     }
 
-    private function qr_detect_mode($data)
+    private function qr_detect_mode(string $data): int
     {
         $numeric = '/^[0-9]*$/';
         $alphanumeric = '/^[0-9A-Z .\/:$%*+-]*$/';
@@ -149,7 +171,7 @@ class Qrcode
         return 2;
     }
 
-    private function qr_detect_version($data, $mode, $ecl)
+    private function qr_detect_version(string $data, int $mode, int $ecl): int
     {
         $length = strlen($data);
         if ($mode == 3) {
@@ -163,8 +185,17 @@ class Qrcode
         return 40;
     }
 
-    private function qr_encode_numeric($data, $version_group)
+// array<int, int, array<int<0, max>, int>, array<int<0, max>, int>>
+
+    /**
+     *
+     * @return array<int<0, max>>
+     */
+    private function qr_encode_numeric(string $data, int $version_group): array
     {
+echo '<pre>';
+print_r($data);
+echo '</pre>';
         $code = array(0, 0, 0, 1);
         $length = strlen($data);
         switch ($version_group) {
@@ -188,15 +219,20 @@ class Qrcode
         }
         for ($i = 0; $i < $length; $i += 3) {
             $group = substr($data, $i, 3);
-            switch (strlen($group)) {
+            $val = strlen($group);
+            $group = intval($group);
+            //switch (strlen($group)) {
+            switch ($val) {
                 case 3:
                     $code[] = $group & 0x200;
                     $code[] = $group & 0x100;
                     $code[] = $group & 0x080;
+//                    break;
                 case 2:
                     $code[] = $group & 0x040;
                     $code[] = $group & 0x020;
                     $code[] = $group & 0x010;
+//                    break;
                 case 1:
                     $code[] = $group & 0x008;
                     $code[] = $group & 0x004;
@@ -204,10 +240,17 @@ class Qrcode
                     $code[] = $group & 0x001;
             }
         }
+//echo '<pre>';
+//print_r($code);
+//echo '</pre>';
         return $code;
     }
 
-    private function qr_encode_alphanumeric($data, $version_group)
+    /**
+     *
+     * @return array<int<0, max>>
+     */
+    private function qr_encode_alphanumeric(string $data, int $version_group): array
     {
         $alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
         $code = array(0, 0, 1, 0);
@@ -233,34 +276,38 @@ class Qrcode
         for ($i = 0; $i < $length; $i += 2) {
             $group = substr($data, $i, 2);
             if (strlen($group) > 1) {
-                $c1 = strpos($alphabet, substr($group, 0, 1));
-                $c2 = strpos($alphabet, substr($group, 1, 1));
-                $ch = $c1 * 45 + $c2;
-                $code[] = $ch & 0x400;
-                $code[] = $ch & 0x200;
-                $code[] = $ch & 0x100;
-                $code[] = $ch & 0x080;
-                $code[] = $ch & 0x040;
-                $code[] = $ch & 0x020;
-                $code[] = $ch & 0x010;
-                $code[] = $ch & 0x008;
-                $code[] = $ch & 0x004;
-                $code[] = $ch & 0x002;
-                $code[] = $ch & 0x001;
+                $c11 = strpos($alphabet, substr($group, 0, 1));
+                $c22 = strpos($alphabet, substr($group, 1, 1));
+                $cha = $c11 * 45 + $c22;
+                $code[] = $cha & 0x400;
+                $code[] = $cha & 0x200;
+                $code[] = $cha & 0x100;
+                $code[] = $cha & 0x080;
+                $code[] = $cha & 0x040;
+                $code[] = $cha & 0x020;
+                $code[] = $cha & 0x010;
+                $code[] = $cha & 0x008;
+                $code[] = $cha & 0x004;
+                $code[] = $cha & 0x002;
+                $code[] = $cha & 0x001;
             } else {
-                $ch = strpos($alphabet, $group);
-                $code[] = $ch & 0x020;
-                $code[] = $ch & 0x010;
-                $code[] = $ch & 0x008;
-                $code[] = $ch & 0x004;
-                $code[] = $ch & 0x002;
-                $code[] = $ch & 0x001;
+                $cha = strpos($alphabet, $group);
+                $code[] = $cha & 0x020;
+                $code[] = $cha & 0x010;
+                $code[] = $cha & 0x008;
+                $code[] = $cha & 0x004;
+                $code[] = $cha & 0x002;
+                $code[] = $cha & 0x001;
             }
         }
         return $code;
     }
 
-    private function qr_encode_binary($data, $version_group)
+    /**
+     *
+     * @return array<int<0, max>>
+     */
+    private function qr_encode_binary(string $data, int $version_group): array
     {
         $code = array(0, 1, 0, 0);
         $length = strlen($data);
@@ -286,20 +333,24 @@ class Qrcode
                 $code[] = $length & 0x0001;
         }
         for ($i = 0; $i < $length; $i++) {
-            $ch = ord(substr($data, $i, 1));
-            $code[] = $ch & 0x80;
-            $code[] = $ch & 0x40;
-            $code[] = $ch & 0x20;
-            $code[] = $ch & 0x10;
-            $code[] = $ch & 0x08;
-            $code[] = $ch & 0x04;
-            $code[] = $ch & 0x02;
-            $code[] = $ch & 0x01;
+            $cha = ord(substr($data, $i, 1));
+            $code[] = $cha & 0x80;
+            $code[] = $cha & 0x40;
+            $code[] = $cha & 0x20;
+            $code[] = $cha & 0x10;
+            $code[] = $cha & 0x08;
+            $code[] = $cha & 0x04;
+            $code[] = $cha & 0x02;
+            $code[] = $cha & 0x01;
         }
         return $code;
     }
 
-    private function qr_encode_kanji($data, $version_group)
+    /**
+     *
+     * @return array<int<0, max>>
+     */
+    private function qr_encode_kanji(string $data, int $version_group): array
     {
         $code = array(1, 0, 0, 0);
         $length = strlen($data);
@@ -322,46 +373,58 @@ class Qrcode
         }
         for ($i = 0; $i < $length; $i += 2) {
             $group = substr($data, $i, 2);
-            $c1 = ord(substr($group, 0, 1));
-            $c2 = ord(substr($group, 1, 1));
-            if ($c1 >= 0x81 && $c1 <= 0x9F && $c2 >= 0x40 && $c2 <= 0xFC) {
-                $ch = ($c1 - 0x81) * 0xC0 + ($c2 - 0x40);
+            $c11 = ord(substr($group, 0, 1));
+            $c22 = ord(substr($group, 1, 1));
+            if ($c11 >= 0x81 && $c11 <= 0x9F && $c22 >= 0x40 && $c22 <= 0xFC) {
+                $cha = ($c11 - 0x81) * 0xC0 + ($c22 - 0x40);
             } elseif (
-                ($c1 >= 0xE0 && $c1 <= 0xEA && $c2 >= 0x40 && $c2 <= 0xFC) ||
-                ($c1 == 0xEB && $c2 >= 0x40 && $c2 <= 0xBF)
+                ($c11 >= 0xE0 && $c11 <= 0xEA && $c22 >= 0x40 && $c22 <= 0xFC) ||
+                ($c11 == 0xEB && $c22 >= 0x40 && $c22 <= 0xBF)
             ) {
-                $ch = ($c1 - 0xC1) * 0xC0 + ($c2 - 0x40);
+                $cha = ($c11 - 0xC1) * 0xC0 + ($c22 - 0x40);
             } else {
-                $ch = 0;
+                $cha = 0;
             }
-            $code[] = $ch & 0x1000;
-            $code[] = $ch & 0x0800;
-            $code[] = $ch & 0x0400;
-            $code[] = $ch & 0x0200;
-            $code[] = $ch & 0x0100;
-            $code[] = $ch & 0x0080;
-            $code[] = $ch & 0x0040;
-            $code[] = $ch & 0x0020;
-            $code[] = $ch & 0x0010;
-            $code[] = $ch & 0x0008;
-            $code[] = $ch & 0x0004;
-            $code[] = $ch & 0x0002;
-            $code[] = $ch & 0x0001;
+            $code[] = $cha & 0x1000;
+            $code[] = $cha & 0x0800;
+            $code[] = $cha & 0x0400;
+            $code[] = $cha & 0x0200;
+            $code[] = $cha & 0x0100;
+            $code[] = $cha & 0x0080;
+            $code[] = $cha & 0x0040;
+            $code[] = $cha & 0x0020;
+            $code[] = $cha & 0x0010;
+            $code[] = $cha & 0x0008;
+            $code[] = $cha & 0x0004;
+            $code[] = $cha & 0x0002;
+            $code[] = $cha & 0x0001;
         }
         return $code;
     }
 
-    private function qr_encode_ec($data, $ec_params, $version)
+    /**
+     * @param array<int<0, max>, int> $data1
+     * @param array<int<0, max>, int> $ec_params
+     *
+     * @return array<int<0, max>, int>
+     */
+    private function qr_encode_ec(array $data1, array $ec_params, int $version): array
     {
-        $blocks = $this->qr_ec_split($data, $ec_params);
+//echo '<pre>';
+//print_r($data1);
+//echo '</pre>';
+        $blocks = $this->qr_ec_split($data1, $ec_params);
         $ec_blocks = array();
         for ($i = 0, $n = count($blocks); $i < $n; $i++) {
             $ec_blocks[] = $this->qr_ec_divide($blocks[$i], $ec_params);
         }
+//echo '<pre>';
+//print_r($blocks);
+//echo '</pre>';
         $data = $this->qr_ec_interleave($blocks);
         $ec_data = $this->qr_ec_interleave($ec_blocks);
         $code = array();
-        foreach ($data as $ch) {
+        foreach ($data1 as $ch) {
             $code[] = $ch & 0x80;
             $code[] = $ch & 0x40;
             $code[] = $ch & 0x20;
@@ -387,22 +450,41 @@ class Qrcode
         return $code;
     }
 
-    private function qr_ec_split($data, $ec_params)
+    /**
+     * @param array<int<0, max>, int> $data1
+     * @param array<int<0, max>, int> $ec_params
+     *
+     * @return list<array<int<0, max>, int>>
+     */
+    private function qr_ec_split(array $data1, array $ec_params): array
     {
+//echo '<pre>';
+//print_r($data);
+//echo '</pre>';
         $blocks = array();
         $offset = 0;
         for ($i = $ec_params[2], $length = $ec_params[3]; $i > 0; $i--) {
-            $blocks[] = array_slice($data, $offset, $length);
+            $blocks[] = array_slice($data1, $offset, $length);
             $offset += $length;
         }
         for ($i = $ec_params[4], $length = $ec_params[5]; $i > 0; $i--) {
-            $blocks[] = array_slice($data, $offset, $length);
+            $blocks[] = array_slice($data1, $offset, $length);
             $offset += $length;
         }
+//echo '<pre>';
+//print_r($blocks);
+//echo '</pre>';
         return $blocks;
     }
 
-    private function qr_ec_divide($data, $ec_params)
+
+    /**
+     * @param array<int<0, max>, int> $data
+     * @param array<int<0, max>, int> $ec_params
+     *
+     * @return array<int<0, max>, int>
+     */
+    private function qr_ec_divide(array $data, array $ec_params): array
     {
         $num_data = count($data);
         $num_error = $ec_params[1];
@@ -420,10 +502,18 @@ class Qrcode
                 }
             }
         }
+//echo '<pre>';
+//print_r($num_error);
+//echo '</pre>';
         return array_slice($message, $num_data, $num_error);
     }
 
-    private function qr_ec_interleave($blocks)
+    /**
+     * @param list<array<int<0, max>, int>> $blocks
+     *
+     * @return array<int<0, max>, int>
+     */
+    private function qr_ec_interleave($blocks): array
     {
         $data = array();
         $num_blocks = count($blocks);
@@ -442,7 +532,12 @@ class Qrcode
         return $data;
     }
 
-    private function qr_create_matrix($version, $data)
+    /**
+     * @param array<int<0, max>, int> $data
+     *
+     * @return array{int, non-empty-array<int, non-empty-array<int, int>>}
+     */
+    private function qr_create_matrix(int $version, array $data): array
     {
         $size = $version * 4 + 17;
         $matrix = array();
@@ -456,24 +551,24 @@ class Qrcode
         /* Finder patterns. */
         for ($i = 0; $i < 8; $i++) {
             for ($j = 0; $j < 8; $j++) {
-                $m = (($i == 7 || $j == 7) ? 2 :
+                $mem = (($i == 7 || $j == 7) ? 2 :
                      (($i == 0 || $j == 0 || $i == 6 || $j == 6) ? 3 :
                      (($i == 1 || $j == 1 || $i == 5 || $j == 5) ? 2 : 3)));
-                $matrix[$i][$j] = $m;
-                $matrix[$size - $i - 1][$j] = $m;
-                $matrix[$i][$size - $j - 1] = $m;
+                $matrix[$i][$j] = $mem;
+                $matrix[$size - $i - 1][$j] = $mem;
+                $matrix[$i][$size - $j - 1] = $mem;
             }
         }
         /* Alignment patterns. */
         if ($version >= 2) {
-            $alignment = $this->qr_alignment_patterns[$version - 2];
+            $alignment = $this->qr_alignment_patt[$version - 2];
             foreach ($alignment as $i) {
                 foreach ($alignment as $j) {
                     if (!$matrix[$i][$j]) {
                         for ($ii = -2; $ii <= 2; $ii++) {
                             for ($jj = -2; $jj <= 2; $jj++) {
-                                $m = (max(abs($ii), abs($jj)) & 1) ^ 3;
-                                $matrix[$i + $ii][$j + $jj] = $m;
+                                $mem = (max(abs($ii), abs($jj)) & 1) ^ 3;
+                                $matrix[$i + $ii][$j + $jj] = $mem;
                             }
                         }
                     }
@@ -536,10 +631,18 @@ class Qrcode
                 }
             }
         }
+//echo '<pre>';
+//print_r($matrix);
+//echo '</pre>';
         return array($size, $matrix);
     }
 
-    private function qr_apply_best_mask($matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return array{int<0, max>, non-empty-array<int, non-empty-array<int, int>>}
+     */
+    private function qr_apply_best_mask(array $matrix, int $size): array
     {
         $best_mask = 0;
         $best_matrix = $this->qr_apply_mask($matrix, $size, $best_mask);
@@ -553,10 +656,18 @@ class Qrcode
                 $best_penalty = $test_penalty;
             }
         }
+//echo '<pre>';
+//print_r($best_matrix);
+//echo '</pre>';
         return array($best_mask, $best_matrix);
     }
 
-    private function qr_apply_mask($matrix, $size, $mask)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return non-empty-array<int, non-empty-array<int, int>>
+     */
+    private function qr_apply_mask(array $matrix, int $size, int $mask): array
     {
         for ($i = 0; $i < $size; $i++) {
             for ($j = 0; $j < $size; $j++) {
@@ -567,41 +678,61 @@ class Qrcode
                 }
             }
         }
+//echo '<pre>';
+//print_r($matrix);
+//echo '</pre>';
         return $matrix;
     }
 
-    private function qr_mask($mask, $r, $c)
+    /**
+     * @return bool
+     */
+    // @phpstan-ignore return.missing
+    private function qr_mask(int $mask, int $rer, int $cer)
     {
         switch ($mask) {
             case 0:
-                return !( ($r + $c) % 2 );
+                return !( ($rer + $cer) % 2 );
             case 1:
-                return !( ($r     ) % 2 );
+                return !( ($rer) % 2 );
             case 2:
-                return !( (     $c) % 3 );
+                return !( ($cer) % 3 );
             case 3:
-                return !( ($r + $c) % 3 );
+                return !( ($rer + $cer) % 3 );
             case 4:
-                return !( (floor(($r) / 2) + floor(($c) / 3)) % 2 );
+                return !( (floor(($rer) / 2) + floor(($cer) / 3)) % 2 );
             case 5:
-                return !( ((($r * $c) % 2) + (($r * $c) % 3))     );
+                return !( ((($rer * $cer) % 2) + (($rer * $cer) % 3))     );
             case 6:
-                return !( ((($r * $c) % 2) + (($r * $c) % 3)) % 2 );
+                return !( ((($rer * $cer) % 2) + (($rer * $cer) % 3)) % 2 );
             case 7:
-                return !( ((($r + $c) % 2) + (($r * $c) % 3)) % 2 );
+                return !( ((($rer + $cer) % 2) + (($rer * $cer) % 3)) % 2 );
         }
     }
 
-    private function qr_penalty(&$matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return float
+     */
+    private function qr_penalty(&$matrix, int $size): float
     {
         $score  = $this->qr_penalty_1($matrix, $size);
         $score += $this->qr_penalty_2($matrix, $size);
         $score += $this->qr_penalty_3($matrix, $size);
         $score += $this->qr_penalty_4($matrix, $size);
+//echo '<pre>';
+//print_r($score);
+//echo '</pre>';
         return $score;
     }
 
-    private function qr_penalty_1(&$matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return int
+     */
+    private function qr_penalty_1(&$matrix, int $size): int
     {
         $score = 0;
         for ($i = 0; $i < $size; $i++) {
@@ -610,24 +741,24 @@ class Qrcode
             $colvalue = 0;
             $colcount = 0;
             for ($j = 0; $j < $size; $j++) {
-                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
-                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
-                if ($rv == $rowvalue) {
+                $rvr = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                $cvr = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
+                if ($rvr == $rowvalue) {
                     $rowcount++;
                 } else {
                     if ($rowcount >= 5) {
                         $score += $rowcount - 2;
                     }
-                    $rowvalue = $rv;
+                    $rowvalue = $rvr;
                     $rowcount = 1;
                 }
-                if ($cv == $colvalue) {
+                if ($cvr == $colvalue) {
                     $colcount++;
                 } else {
                     if ($colcount >= 5) {
                         $score += $colcount - 2;
                     }
-                    $colvalue = $cv;
+                    $colvalue = $cvr;
                     $colcount = 1;
                 }
             }
@@ -641,20 +772,25 @@ class Qrcode
         return $score;
     }
 
-    private function qr_penalty_2(&$matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return int
+     */
+    private function qr_penalty_2(&$matrix, int $size): int
     {
         $score = 0;
         for ($i = 1; $i < $size; $i++) {
             for ($j = 1; $j < $size; $j++) {
-                $v1 = $matrix[$i - 1][$j - 1];
-                $v2 = $matrix[$i - 1][$j    ];
-                $v3 = $matrix[$i    ][$j - 1];
-                $v4 = $matrix[$i    ][$j    ];
-                $v1 = ($v1 == 5 || $v1 == 3) ? 1 : 0;
-                $v2 = ($v2 == 5 || $v2 == 3) ? 1 : 0;
-                $v3 = ($v3 == 5 || $v3 == 3) ? 1 : 0;
-                $v4 = ($v4 == 5 || $v4 == 3) ? 1 : 0;
-                if ($v1 == $v2 && $v2 == $v3 && $v3 == $v4) {
+                $v1v = $matrix[$i - 1][$j - 1];
+                $v2v = $matrix[$i - 1][$j    ];
+                $v3v = $matrix[$i    ][$j - 1];
+                $v4v = $matrix[$i    ][$j    ];
+                $v1v = ($v1v == 5 || $v1v == 3) ? 1 : 0;
+                $v2v = ($v2v == 5 || $v2v == 3) ? 1 : 0;
+                $v3v = ($v3v == 5 || $v3v == 3) ? 1 : 0;
+                $v4v = ($v4v == 5 || $v4v == 3) ? 1 : 0;
+                if ($v1v == $v2v && $v2v == $v3v && $v3v == $v4v) {
                     $score += 3;
                 }
             }
@@ -662,17 +798,22 @@ class Qrcode
         return $score;
     }
 
-    private function qr_penalty_3(&$matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return int
+     */
+    private function qr_penalty_3(&$matrix, int $size): int
     {
         $score = 0;
         for ($i = 0; $i < $size; $i++) {
             $rowvalue = 0;
             $colvalue = 0;
             for ($j = 0; $j < 11; $j++) {
-                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
-                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
-                $rowvalue = (($rowvalue << 1) & 0x7FF) | $rv;
-                $colvalue = (($colvalue << 1) & 0x7FF) | $cv;
+                $rvr = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                $cvr = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
+                $rowvalue = (($rowvalue << 1) & 0x7FF) | $rvr;
+                $colvalue = (($colvalue << 1) & 0x7FF) | $cvr;
             }
             if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) {
                 $score += 40;
@@ -681,10 +822,10 @@ class Qrcode
                 $score += 40;
             }
             for ($j = 11; $j < $size; $j++) {
-                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
-                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
-                $rowvalue = (($rowvalue << 1) & 0x7FF) | $rv;
-                $colvalue = (($colvalue << 1) & 0x7FF) | $cv;
+                $rvr = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                $cvr = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
+                $rowvalue = (($rowvalue << 1) & 0x7FF) | $rvr;
+                $colvalue = (($colvalue << 1) & 0x7FF) | $cvr;
                 if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) {
                     $score += 40;
                 }
@@ -696,7 +837,12 @@ class Qrcode
         return $score;
     }
 
-    private function qr_penalty_4(&$matrix, $size)
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return float
+     */
+    private function qr_penalty_4(&$matrix, int $size): float
     {
         $dark = 0;
         for ($i = 0; $i < $size; $i++) {
@@ -708,18 +854,23 @@ class Qrcode
         }
         $dark *= 20;
         $dark /= $size * $size;
-        $a = abs(floor($dark) - 10);
-        $b = abs(ceil($dark) - 10);
-        return min($a, $b) * 10;
+        $aer = abs(floor($dark) - 10);
+        $ber = abs(ceil($dark) - 10);
+        return min($aer, $ber) * 10;
     }
 
+    /**
+     * @param non-empty-array<int, non-empty-array<int, int>> $matrix
+     *
+     * @return non-empty-array<int, non-empty-array<int, int>>
+     */
     private function qr_finalize_matrix(
-        $matrix,
-        $size,
-        $ecl,
-        $mask,
-        $version
-    ) {
+        array $matrix,
+        int $size,
+        int $ecl,
+        int $mask,
+        int $version
+    ): array {
         /* Format Info */
         $format = $this->qr_format_info[$ecl * 8 + $mask];
         $matrix[8][0] = $format[0];
@@ -756,10 +907,10 @@ class Qrcode
         if ($version >= 7) {
             $version = $this->qr_version_info[$version - 7];
             for ($i = 0; $i < 18; $i++) {
-                $r = $size - 9 - ($i % 3);
-                $c = 5 - floor($i / 3);
-                $matrix[$r][$c] = $version[$i];
-                $matrix[$c][$r] = $version[$i];
+                $rer = $size - 9 - ($i % 3);
+                $cer = 5 - floor($i / 3);
+                $matrix[$rer][$cer] = $version[$i];
+                $matrix[$cer][$rer] = $version[$i];
             }
         }
         /* Patterns & Data */
@@ -774,6 +925,12 @@ class Qrcode
     /*  maximum encodable characters = $qr_capacity [ (version - 1) ]  */
     /*    [ (0 for L, 1 for M, 2 for Q, 3 for H)                    ]  */
     /*    [ (0 for numeric, 1 for alpha, 2 for binary, 3 for kanji) ]  */
+    //* @var array<array<array{int, int, int, int}, array{int, int, int, int}, array{int, int, int, int}, array{int, int, int, int}>>
+    //* @var array<array{int, int, int, int, int, int}>
+
+    /**
+     * @var array<array<array{int, int, int, int}>>
+     */
     private $qr_capacity = array(
         array(array(  41,   25,   17,   10), array(  34,   20,   14,    8),
               array(  27,   16,   11,    7), array(  17,   10,    7,    4)),
@@ -867,6 +1024,10 @@ class Qrcode
     /*    number of blocks in second group,                         */
     /*    number of data codewords per block in second group        */
     /*  );                                                          */
+
+    /**
+     * @var array<array{int, int, int, int, int, int}>
+     */
     private $qr_ec_params = array(
         array(   19,  7,  1,  19,  0,   0 ),
         array(   16, 10,  1,  16,  0,   0 ),
@@ -1030,6 +1191,9 @@ class Qrcode
         array( 1276, 30, 20,  15, 61,  16 ),
     );
 
+    /**
+     * @var array<int, array<int<0, max>>>
+     */
     private $qr_ec_polynomials = array(
         7 => array(
             0, 87, 229, 146, 149, 238, 102, 21
@@ -1086,6 +1250,9 @@ class Qrcode
         ),
     );
 
+    /**
+     * @var array<int<0, max>>
+     */
     private $qr_log = array(
           0,   0,   1,  25,   2,  50,  26, 198,
           3, 223,  51, 238,  27, 104, 199,  75,
@@ -1121,6 +1288,9 @@ class Qrcode
         116, 214, 244, 234, 168,  80,  88, 175,
     );
 
+    /**
+     * @var array<int<0, max>>
+     */
     private $qr_exp = array(
           1,   2,   4,   8,  16,  32,  64, 128,
          29,  58, 116, 232, 205, 135,  19,  38,
@@ -1156,12 +1326,18 @@ class Qrcode
          27,  54, 108, 216, 173,  71, 142,   1,
     );
 
+    /**
+     * @var array<int<0, max>>
+     */
     private $qr_remainder_bits = array(
         0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3,
         4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
     );
 
-    private $qr_alignment_patterns = array(
+    /**
+     * @var array<array{int<0, max>}>
+     */
+    private $qr_alignment_patt = array(
         array(6, 18),
         array(6, 22),
         array(6, 26),
@@ -1206,6 +1382,10 @@ class Qrcode
     /*  format info string = $qr_format_info[            */
     /*    (0 for L, 8 for M, 16 for Q, 24 for H) + mask  */
     /*  ];                                               */
+
+    /**
+     * @var array<array{int, int, int, int, int, int, int, int, int, int, int, int, int, int, int}>
+     */
     private $qr_format_info = array(
         array( 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0 ),
         array( 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1 ),
@@ -1242,6 +1422,10 @@ class Qrcode
     );
 
     /*  version info string = $qr_version_info[ (version - 7) ]  */
+
+    /**
+     * @var array<array{int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int}>
+     */
     private $qr_version_info = array(
         array( 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0 ),
         array( 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0 ),
