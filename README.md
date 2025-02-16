@@ -7,8 +7,10 @@
 ### Generate barcodes from a single PHP file. MIT license.
 
   * Output to PNG, GIF, JPEG, or SVG.
-  * Generates UPC-A, UPC-E, EAN-13, EAN-8, Code 39, Code 93, Code 128, Codabar, ITF, QR Code, and Data Matrix.
-
+  * Generates: UPC-A, UPC-E, EAN-2, EAN-5, EAN-8, EAN-13
+  * Generates: Code 11, Code 39, Code 93, Code 128, Codabar
+  * Generates: I25(+), S25(+), Msi(+), QR Code, and Data Matrix.
+ 
 ### Use directly as a PHP script with GET or POST:
 
 ```
@@ -70,14 +72,15 @@ file_put_contents($filename, $svg);
 
 `s` - Symbology (type of barcode). One of:
 ```
-    upc-a          code-39         s25    dmtx
-    upc-e          code-39-ascii   s25+   dmtx-s
-    ean-2          code-93         qr     dmtx-r
-    ean-5          code-93-ascii   qr-l   gs1-dmtx
-    ean-8          code-128        qr-m   gs1-dmtx-s
-    ean-13         codabar         qr-q   gs1-dmtx-r
-    ean-13-pad     i25             qr-h
-    ean-128        i25+
+    upc-a        code-39         i25     qr-m   dmtx
+    upc-e        code-39-ascii   i25+    qr-l   dmtx-s
+    ean-2        code-93         s25     qr-q   dmtx-r
+    ean-5        code-93-ascii   s25+    qr-h   gs1-dmtx
+    ean-8        code-128        msi           gs1-dmtx-s
+    ean-13       code-11         msi+          gs1-dmtx-r
+    ean-13-pad   codabar         pharma
+    ean-128
+
 ```
 
 `d` - Data. For UPC or EAN, use `*` (Fixed bug - now working correct) for missing digit. For Codabar, use `ABCD` or `ENT*` for start and stop characters. For QR, encode in Shift-JIS for kanji mode.
@@ -114,7 +117,7 @@ file_put_contents($filename, $svg);
 
 `tc` - Text color in `#RRGGBB` format. Applies to linear barcodes only.
 
-`tf` - Text font for Imagick, GD and SVG output in .ttf. Applies to linear barcodes only.
+`tf` - Text font for SVG output. Default is monospace. Applies to linear barcodes only.
 
 `ts` - Text size. For SVG output, this is in points and the default is 10. For PNG, GIF, or JPEG output, this is the GD library built-in font number from 1 to 5 and the default is 1. Applies to linear barcodes only.
 
@@ -134,7 +137,3 @@ file_put_contents($filename, $svg);
 `wq` - Width of quiet area units. Default is 1. Use 0 to suppress quiet area.
 
 `wm` - Width of narrow modules and spaces. Default is 1.
-
-`ww` - Width of wide modules and spaces. Applies to Code 39, Codabar, and ITF only. Default is 3.
-
-`wn` - Width of narrow space between characters. Applies to Code 39 and Codabar only. Default is 1.
