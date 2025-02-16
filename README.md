@@ -9,7 +9,7 @@
   * Output to PNG, GIF, JPEG, or SVG.
   * Generates: UPC-A, UPC-E, EAN-2, EAN-5, EAN-8, EAN-13
   * Generates: Code 11, Code 39, Code 93, Code 128, Codabar
-  * Generates: I25(+), S25(+), Msi(+), QR Code, and Data Matrix.
+  * Generates: Pharma, I25(+), S25(+), Msi(+), QR Code, and Data Matrix.
  
 ### Use directly as a PHP script with GET or POST:
 
