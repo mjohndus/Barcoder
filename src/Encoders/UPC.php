@@ -74,11 +74,11 @@ class UPC
                 '3' => [1, 1],
         ];
 
-        /* - - - - UPC FAMILY ENCODER - - - - */
+    /* - - - - UPC FAMILY ENCODER - - - - */
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function upc_a_encode(string $data): array
     {
             $data = $this->upc_a_normalize($data);
@@ -165,9 +165,9 @@ class UPC
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function upc_e_encode(string $data): array
     {
             $data = $this->upc_e_normalize($data);
@@ -218,9 +218,9 @@ class UPC
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function ean_13_encode(string $data, string $pad): array
     {
             $data = $this->ean_13_normalize($data);
@@ -296,9 +296,9 @@ class UPC
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function ean_8_encode(string $data): array
     {
             $data = $this->ean_8_normalize($data);
@@ -367,9 +367,9 @@ class UPC
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function ean_5_encode(string $data): array
     {
             //$data = $this->ean_5_normalize($data);
@@ -425,9 +425,9 @@ class UPC
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /**
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function ean_2_encode(string $data): array
     {
             //$data = $this->ean_2_normalize($data);

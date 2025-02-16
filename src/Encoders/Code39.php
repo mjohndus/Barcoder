@@ -30,7 +30,7 @@ namespace Barcoder\Encoders;
 
 class Code39
 {
-        /* - - - - CODE 39 FAMILY ENCODER - - - - */
+    /* - - - - CODE 39 FAMILY ENCODER - - - - */
 
     protected const CODE_39_ALPHABET = array(
                 '1' => array(2, 1, 1, 2, 1, 1, 1, 1, 2),
@@ -98,10 +98,10 @@ class Code39
                 '+X', '+Y', '+Z', '%P', '%Q', '%R', '%S', '%T',
         );
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function code_39_encode(string $data): array
     {
             $data = strtoupper((string) preg_replace('/[^0-9A-Za-z%$\/+ .-]/', '', $data));
@@ -153,10 +153,10 @@ class Code39
             return array('g' => 'l', 'b' => $blocks);
     }
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function code_39_ascii_encode(string $data): array
     {
             $modules = array();

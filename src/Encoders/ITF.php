@@ -58,13 +58,13 @@ class ITF
                 '9' => [1, 1, 3, 1, 1, 1, 3, 1, 1, 1],
         ];
 
-        /**
-         * Calculate the checksum
-         *
-         * @param string $data Code to represent.
-         *
-         * @return int
-         */
+    /**
+     * Calculate the checksum
+     *
+     * @param string $data Code to represent.
+     *
+     * @return int
+     */
     protected function getChecksum(string $data): int
     {
         $clen = strlen($data);
@@ -86,19 +86,18 @@ class ITF
         return $check;
     }
 
-        /**
-         * Format code
-         */
+    /**
+     * Format code
+     */
     protected function formatCode(string $data): string
     {
         $data = $data . $this->getChecksum($data);
         return $data;
     }
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     protected function i25setbars(string $data): array
     {
         $blocks = [];
@@ -150,10 +149,9 @@ class ITF
         return $blocks;
     }
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     protected function s25setbars(string $data): array
     {
         $blocks = [];
@@ -213,12 +211,11 @@ class ITF
         return $blocks;
     }
 
-        /* - - - - I25 ENCODER - - - - */
+    /* - - - - I25 ENCODER - - - - */
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function i25_encode(string $data): array
     {
             $data = (string) preg_replace('/[^0-9]/', '', $data);
@@ -233,12 +230,12 @@ class ITF
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /* - - - - I25+ ENCODER - - - - */
+    /* - - - - I25+ ENCODER - - - - */
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function i25check_encode(string $data): array
     {
             $data = (string) preg_replace('/[^0-9]/', '', $data);
@@ -254,12 +251,11 @@ class ITF
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /* - - - - s25 ENCODER - - - - */
+    /* - - - - s25 ENCODER - - - - */
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function s25_encode(string $data): array
     {
             $data = (string) preg_replace('/[^0-9]/', '', $data);
@@ -275,12 +271,11 @@ class ITF
             return ['g' => 'l', 'b' => $blocks];
     }
 
-        /* - - - - s25+ ENCODER - - - - */
+    /* - - - - s25+ ENCODER - - - - */
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     * @return array<mixed>
+     */
     public function s25check_encode(string $data): array
     {
             $data = (string) preg_replace('/[^0-9]/', '', $data);

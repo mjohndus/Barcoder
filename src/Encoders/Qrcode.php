@@ -193,9 +193,9 @@ class Qrcode
      */
     private function qr_encode_numeric(string $data, int $version_group): array
     {
-echo '<pre>';
-print_r($data);
-echo '</pre>';
+//echo '<pre>';
+//print_r($data);
+//echo '</pre>';
         $code = array(0, 0, 0, 1);
         $length = strlen($data);
         switch ($version_group) {
@@ -685,10 +685,9 @@ echo '</pre>';
     }
 
     /**
-     * @return bool
+     *
      */
-    // @phpstan-ignore return.missing
-    private function qr_mask(int $mask, int $rer, int $cer)
+    private function qr_mask(int $mask, int $rer, int $cer): bool
     {
         switch ($mask) {
             case 0:
@@ -708,6 +707,7 @@ echo '</pre>';
             case 7:
                 return !( ((($rer + $cer) % 2) + (($rer * $cer) % 3)) % 2 );
         }
+        return true;
     }
 
     /**

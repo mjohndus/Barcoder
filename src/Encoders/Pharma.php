@@ -30,11 +30,11 @@ namespace Barcoder\Encoders;
 
 class Pharma
 {
-        /* - - - - PHARMA ENCODER - - - - */
+    /* - - - - PHARMA ENCODER - - - - */
 
-        /**
-         * @return array<string, list<array<string, array<int, list<int>|string>>>|string>
-         */
+    /**
+     * @return array<string, list<array<string, array<int, list<int>|string>>>|string>
+     */
     public function pharma_encode(string $data): array
     {
             $data = (int) preg_replace('/[^0-9]/', '', $data);

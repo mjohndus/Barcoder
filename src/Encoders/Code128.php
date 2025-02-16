@@ -42,7 +42,7 @@ namespace Barcoder\Encoders;
 
 class Code128
 {
-        /* - - - - CODE 128 ENCODER - - - - */
+    /* - - - - CODE 128 ENCODER - - - - */
 
     protected const CODE_128_ALPHABET = array(
                 array(2, 1, 2, 2, 2, 2), array(2, 2, 2, 1, 2, 2),
@@ -101,10 +101,10 @@ class Code128
                 array(2, 3, 3, 1, 1, 1, 2)
         );
 
-        /**
-         *
-         * @return array<mixed>
-         */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function code_128_encode(string $data, int $dstate, bool $fnc1): array
     {
         $data = (string) preg_replace('/[\x80-\xFF]/', '', $data);
@@ -140,14 +140,14 @@ class Code128
         return ['g' => 'l', 'b' => $blocks];
     }
 
-    private function cas1(): void
-    {
-    }
+//    private function cas1(): void
+//    {
+//    }
 
-        /**
-         *
-         * @return array<int>
-         */
+    /**
+     *
+     * @return array<int>
+     */
     private function code_128_normalize(string $data, int $dstate, bool $fnc1): array
     {
             $detectcba = '/(^[0-9]{4,}|^[0-9]{2}$)|([\x60-\x7F])|([\x00-\x1F])/';

@@ -57,11 +57,11 @@ class Codabar
                 '+' => [1, 1, 2, 1, 2, 1, 2],
         ];
 
-        /* - - - - CODABAR ENCODER - - - - */
+    /* - - - - CODABAR ENCODER - - - - */
 
-        /**
-         * @return array<string, list<array<string, array<int, list<int>|string>>>|string>
-         */
+    /**
+     * @return array<string, list<array<string, array<int, list<int>|string>>>|string>
+     */
     public function codabar_encode(string $data): array
     {
             $data = strtoupper((string) preg_replace(

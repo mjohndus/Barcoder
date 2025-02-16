@@ -37,6 +37,7 @@ namespace Barcoder\Encoders;
  * @SuppressWarnings("PHPMD.NPathComplexity")
  * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
  * @SuppressWarnings("PHPMD.ExcessiveClassComplexity")
+ * @phpstan-ignore arguments.count
  *
  */
 

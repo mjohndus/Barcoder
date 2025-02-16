@@ -107,10 +107,10 @@ class Code93
                 '=X', '=Y', '=Z', '&P', '&Q', '&R', '&S', '&T',
          ];
 
-         /**
-          *
-          * @return array<mixed>
-          */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function code_93_encode(string $data): array
     {
         $data = strtoupper((string) preg_replace('/[^0-9A-Za-z%+\/$ .-]/', '', $data));
@@ -172,10 +172,10 @@ class Code93
         return ['g' => 'l', 'b' => $blocks];
     }
 
-         /**
-          *
-          * @return array<mixed>
-          */
+    /**
+     *
+     * @return array<mixed>
+     */
     public function code_93_ascii_encode(string $data): array
     {
         $modules = [];
