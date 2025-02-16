@@ -511,6 +511,7 @@ class Barcoder {
                         case 'ean8'       : return (new Encoders\UPC)->ean_8_encode($data);
                         case 'ean13'      : return (new Encoders\UPC)->ean_13_encode($data, ' ');
                         case 'ean13pad'   : return (new Encoders\UPC)->ean_13_encode($data, '>');
+                        case 'code11'     : return (new Encoders\Code11)->code_11_encode($data);
                         case 'code39'     : return (new Encoders\Code39)->code_39_encode($data);
                         case 'code39ascii': return (new Encoders\Code39)->code_39_ascii_encode($data);
                         case 'code93'     : return (new Encoders\Code93)->code_93_encode($data);
@@ -527,22 +528,25 @@ class Barcoder {
                         case 'ean128c'    : return (new Encoders\Code128)->code_128_encode($data, 3, true);
                         case 'ean128ac'   : return (new Encoders\Code128)->code_128_encode($data,-1, true);
                         case 'ean128bc'   : return (new Encoders\Code128)->code_128_encode($data,-2, true);
-                        case 'codabar'    : return (new Encoders\Codebar)->codabar_encode($data);
+                        case 'codabar'    : return (new Encoders\Codabar)->codabar_encode($data);
+                        case 'pharma'     : return (new Encoders\Pharma)->pharma_encode($data);
                         case 'i25+'       : return (new Encoders\ITF)->i25check_encode($data);
                         case 'i25'        : return (new Encoders\ITF)->i25_encode($data);
                         case 's25+'       : return (new Encoders\ITF)->s25check_encode($data);
                         case 's25'        : return (new Encoders\ITF)->s25_encode($data);
+                        case 'msi'        : return (new Encoders\Msi)->msi_encode($data, 0);
+                        case 'msi+'       : return (new Encoders\Msi)->msi_encode($data, 11);
                         case 'qr'         : return (new Encoders\Qrcode)->qr_encode($data, 0);
                         case 'qrl'        : return (new Encoders\Qrcode)->qr_encode($data, 0);
                         case 'qrm'        : return (new Encoders\Qrcode)->qr_encode($data, 1);
                         case 'qrq'        : return (new Encoders\Qrcode)->qr_encode($data, 2);
                         case 'qrh'        : return (new Encoders\Qrcode)->qr_encode($data, 3);
-                        case 'dmtx'       : return (new Encoders\Linear)->dmtx_encode($data,false,false);
-                        case 'dmtxs'      : return (new Encoders\Linear)->dmtx_encode($data,false,false);
-                        case 'dmtxr'      : return (new Encoders\Linear)->dmtx_encode($data, true,false);
-                        case 'gs1dmtx'    : return (new Encoders\Linear)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxs'   : return (new Encoders\Linear)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxr'   : return (new Encoders\Linear)->dmtx_encode($data, true, true);
+                        case 'dmtx'       : return (new Encoders\DMTX)->dmtx_encode($data,false,false);
+                        case 'dmtxs'      : return (new Encoders\DMTX)->dmtx_encode($data,false,false);
+                        case 'dmtxr'      : return (new Encoders\DMTX)->dmtx_encode($data, true,false);
+                        case 'gs1dmtx'    : return (new Encoders\DMTX)->dmtx_encode($data,false, true);
+                        case 'gs1dmtxs'   : return (new Encoders\DMTX)->dmtx_encode($data,false, true);
+                        case 'gs1dmtxr'   : return (new Encoders\DMTX)->dmtx_encode($data, true, true);
 		}
 		return null;
 	}
