@@ -743,7 +743,7 @@ class Barcoder {
 				$lw = imagefontwidth($textsize) * strlen($label);
 				$lx = round($lx - $lw / 2);
                                 if ($textfont !=  '') {
-                                    imagettftext($image, $textsize, 0, $lx, $ly + $textsize, $textcolor, $textfont, $label);
+                                    imagettftext($image, $textsize, 0, (int)$lx, (int)$ly + $textsize, $textcolor, $textfont, $label);
                                     } else {
                                     imagestring($image, $textsize, $lx, $ly, $label, $textcolor);
                                 }
