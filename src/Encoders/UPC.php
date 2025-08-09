@@ -87,7 +87,7 @@ class UPC
             $digit = substr($data, 0, 1);
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => [$digit, 0, 1 / 3]
+                    'l' => [$digit, 0.5, 1 / 3]
             ];
             $blocks[] = [
                     'm' => [
@@ -159,7 +159,7 @@ class UPC
             ];
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => [$digit, 0, 2 / 3]
+                    'l' => [$digit, 0.5, 2 / 3]
             ];
             /* Return code. */
             return ['g' => 'l', 'b' => $blocks];
