@@ -37,34 +37,43 @@ class Pharma
      */
     public function pharma_encode(string $data): array
     {
-            $data = (int) preg_replace('/[^0-9]/', '', $data);
-
-            $char = '';
-            $blocks = [];
+        $data = (int) preg_replace('/[^0-9]/', '', $data);
+        //$datat = strrev($data);
+        $datat = $data;
+        $char = '';
+        $blocks = [];
+        $i = 0;
         while ($data > 0) {
             if (($data % 2) == 0) {
-                $blocks[] = [
-                        'm' => [
-                                [0, 2, 1],
-                                [1, 3, 1],
-                        ],
-                        'l' => [$char]
-                ];
-                $data -= 2;
+               $blocks[] = [
+                       'm' => [
+                              [0, 2, 1],
+                              [1, 3, 1],
+                             ],
+                      'l' => ['']
+                      ];
+               $data -= 2;
             } else {
-                $blocks[] = [
-                        'm' => [
-                                [0, 2, 1],
-                                [1, 1, 1],
-                        ],
-                        'l' => [$char]
-                ];
-                --$data;
-            }
-            $data /= 2;
+               $blocks[] = [
+                      'm' => [
+                              [0, 2, 1],
+                              [1, 1, 1],
+                             ],
+                      'l' => ['']
+                      ];
+            --$data;
         }
-            $blocks = array_reverse($blocks);
-            unset($blocks[0]['m'][0]);
-            return ['g' => 'l', 'b' => $blocks];
+            $data /= 2;
+    }
+        $blocks = array_reverse($blocks);
+//        unset($blocks[0]['m'][0]);
+        $n = strlen($datat);
+        $k = ceil((count($blocks) - ($n*2)) / 2);
+        for ($i = 0; $i < $n; $i++) {
+            $char = substr($datat, $i, 1);
+            $blocks[$k]['l'] = $char;
+            $k += 2;
+        }
+        return ['g' => 'l', 'b' => $blocks];
     }
 }
