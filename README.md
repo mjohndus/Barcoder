@@ -76,9 +76,9 @@ file_put_contents($filename, $svg);
     upc-e        code-39-ascii   i25+    qr-l   dmtx-s
     ean-2        code-93         s25     qr-q   dmtx-r
     ean-5        code-93-ascii   s25+    qr-h   gs1-dmtx
-    ean-8        code-128        msi           gs1-dmtx-s
-    ean-13       code-11         msi+          gs1-dmtx-r
-    ean-13-pad   codabar         pharma
+    ean-8        code-128        msi            gs1-dmtx-s
+    ean-13       code-11         msi+           gs1-dmtx-r
+    ean-13-pad   codabar         pharma    new: aztec
     ean-128
 
 ```
