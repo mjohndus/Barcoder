@@ -84,10 +84,10 @@ class UPC
             $data = $this->upc_a_normalize($data);
             $blocks = [];
             /* Quiet zone, start, first digit. */
-            $digit = substr($data, 0, 1);
+            $system = substr($data, 0, 1);
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => [$digit, 0.5, 1 / 3]
+                    'l' => [$system, 0.5, 1 / 3]
             ];
             $blocks[] = [
                     'm' => [
@@ -96,14 +96,16 @@ class UPC
                             [1, 1, 1],
                     ]
             ];
+
             $blocks[] = [
                     'm' => [
-                            [0, $this::UPC_ALPHABET[$digit][0], 1],
-                            [1, $this::UPC_ALPHABET[$digit][1], 1],
-                            [0, $this::UPC_ALPHABET[$digit][2], 1],
-                            [1, $this::UPC_ALPHABET[$digit][3], 1],
+                            [0, $this::UPC_ALPHABET[$system][0], 1],
+                            [1, $this::UPC_ALPHABET[$system][1], 1],
+                            [0, $this::UPC_ALPHABET[$system][2], 1],
+                            [1, $this::UPC_ALPHABET[$system][3], 1],
                     ]
             ];
+
             /* Left zone. */
             for ($i = 1; $i < 6; $i++) {
                     $digit = substr($data, $i, 1);
@@ -234,7 +236,7 @@ class UPC
             );
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => [$system, 0.5, 1 / 3]
+                    'l' => [$system, 0.5, 1 / 8]
             ];
             $blocks[] = [
                     'm' => [
@@ -299,14 +301,14 @@ class UPC
     /**
      * @return array<mixed>
      */
-    public function ean_8_encode(string $data): array
+    public function ean_8_encode(string $data, string $padl, string $padr): array
     {
             $data = $this->ean_8_normalize($data);
             $blocks = [];
             /* Quiet zone, start. */
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => ['<', 0.5, 1 / 3]
+                    'l' => [$padl, 0.5, 1 / 3]
             ];
             $blocks[] = [
                     'm' => [
@@ -361,7 +363,7 @@ class UPC
             ];
             $blocks[] = [
                     'm' => [[2, 9, 0]],
-                    'l' => ['>', 0.5, 2 / 3]
+                    'l' => [$padr, 0.5, 2 / 3]
             ];
             /* Return code. */
             return ['g' => 'l', 'b' => $blocks];

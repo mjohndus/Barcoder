@@ -118,9 +118,8 @@ class Code11
     }
 
     /**
-     * @return array{g: 'l', b: non-empty-list<array{m: array{0:array{1, 1, 1}, 1: array{0, 1, 1}, 2: array{1, 2, 1}, 3: array{0, 2, 1}, 4: array{
-     * 1, 1, 1}, 5?: array{0, 1, 1}}} | array{m: array{array{1, non-empty-string, 1}, array{0, non-empty-string, 1}, array{1,
-     * non-empty-string, 1}, array{0, non-empty-string, 1}, array{1, non-empty-string, 1}, array{0, non-empty-string, 1}}, l: array{string}}>}
+     *
+     * @return array<mixed>
      */
     public function code_11_encode(string $data): array
     {

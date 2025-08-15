@@ -28,6 +28,16 @@ DEALINGS IN THE SOFTWARE.
 
 namespace Barcoder\Encoders;
 
+/**
+ * Barcoder\Encoders
+ *
+ * Barcode Type class
+ *
+ * @SuppressWarnings("PHPMD.CyclomaticComplexity")
+ * @SuppressWarnings("PHPMD.NPathComplexity")
+ *
+ */
+
 class Msi
 {
     /**
@@ -150,7 +160,6 @@ class Msi
                             'l' => [$char]
                         ];
         }
-
         /* right guard */
         $blocks[] = [
                 'm' => [
@@ -160,10 +169,6 @@ class Msi
                         [1, 1, 1],
                 ]
         ];
-
-//echo '<pre>';
-//print_r($data);
-//echo '</pre>';
         return ['g' => 'l', 'b' => $blocks];
     }
 }

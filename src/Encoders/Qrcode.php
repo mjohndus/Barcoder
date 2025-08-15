@@ -68,10 +68,6 @@ class Qrcode
         );
     }
 
-// @var array<int, int, array<int<0, max>, int>, array<int<0, max>, int>>
-// @return array{array<int, int, array<int<0, max>, int>, array<int<0, max>, int>}
-//      * @return array{array<int<0, max>, int>, array<int<0, max>, int>}
-
     /**
      *
      * @return array{int, int, array<int<0, max>, int>, array<int<0, max>, int>}
@@ -199,13 +195,16 @@ class Qrcode
         $code = array(0, 0, 0, 1);
         $length = strlen($data);
         switch ($version_group) {
-            case 2:  /* 27 - 40 */
+            /* 27 - 40 */
+            case 2:
                 $code[] = $length & 0x2000;
                 $code[] = $length & 0x1000;
-            case 1:  /* 10 - 26 */
+            /* 10 - 26 */
+            case 1:
                 $code[] = $length & 0x0800;
                 $code[] = $length & 0x0400;
-            case 0:  /* 1 - 9 */
+            /* 1 - 9 */
+            case 0:
                 $code[] = $length & 0x0200;
                 $code[] = $length & 0x0100;
                 $code[] = $length & 0x0080;
@@ -256,13 +255,16 @@ class Qrcode
         $code = array(0, 0, 1, 0);
         $length = strlen($data);
         switch ($version_group) {
-            case 2:  /* 27 - 40 */
+            /* 27 - 40 */
+            case 2:
                 $code[] = $length & 0x1000;
                 $code[] = $length & 0x0800;
-            case 1:  /* 10 - 26 */
+            /* 10 - 26 */
+            case 1:
                 $code[] = $length & 0x0400;
                 $code[] = $length & 0x0200;
-            case 0:  /* 1 - 9 */
+            /* 1 - 9 */
+            case 0:
                 $code[] = $length & 0x0100;
                 $code[] = $length & 0x0080;
                 $code[] = $length & 0x0040;
@@ -312,8 +314,10 @@ class Qrcode
         $code = array(0, 1, 0, 0);
         $length = strlen($data);
         switch ($version_group) {
-            case 2:  /* 27 - 40 */
-            case 1:  /* 10 - 26 */
+            /* 27 - 40 */
+            /* 10 - 26 */
+            case 2:
+            case 1:
                 $code[] = $length & 0x8000;
                 $code[] = $length & 0x4000;
                 $code[] = $length & 0x2000;
@@ -322,7 +326,8 @@ class Qrcode
                 $code[] = $length & 0x0400;
                 $code[] = $length & 0x0200;
                 $code[] = $length & 0x0100;
-            case 0:  /* 1 - 9 */
+            /* 1 - 9 */
+            case 0:
                 $code[] = $length & 0x0080;
                 $code[] = $length & 0x0040;
                 $code[] = $length & 0x0020;
@@ -355,13 +360,16 @@ class Qrcode
         $code = array(1, 0, 0, 0);
         $length = strlen($data);
         switch ($version_group) {
-            case 2:  /* 27 - 40 */
+            /* 27 - 40 */
+            case 2:
                 $code[] = $length & 0x1000;
                 $code[] = $length & 0x0800;
-            case 1:  /* 10 - 26 */
+            /* 10 - 26 */
+            case 1:
                 $code[] = $length & 0x0400;
                 $code[] = $length & 0x0200;
-            case 0:  /* 1 - 9 */
+            /* 1 - 9 */
+            case 0:
                 $code[] = $length & 0x0100;
                 $code[] = $length & 0x0080;
                 $code[] = $length & 0x0040;
@@ -925,7 +933,8 @@ class Qrcode
     /*  maximum encodable characters = $qr_capacity [ (version - 1) ]  */
     /*    [ (0 for L, 1 for M, 2 for Q, 3 for H)                    ]  */
     /*    [ (0 for numeric, 1 for alpha, 2 for binary, 3 for kanji) ]  */
-    //* @var array<array<array{int, int, int, int}, array{int, int, int, int}, array{int, int, int, int}, array{int, int, int, int}>>
+    //* @var array<array<array{int, int, int, int}, array{int, int, int, int},
+    //*      array{int, int, int, int}, array{int, int, int, int}>>
     //* @var array<array{int, int, int, int, int, int}>
 
     /**

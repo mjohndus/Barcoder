@@ -36,7 +36,6 @@ namespace Barcoder\Encoders;
  * @SuppressWarnings("PHPMD.CyclomaticComplexity")
  * @SuppressWarnings("PHPMD.NPathComplexity")
  * @SuppressWarnings("PHPMD.ExcessiveMethodLength")
- * @SuppressWarnings("PHPMD.UnusedPrivateMethod")
  *
  */
 
