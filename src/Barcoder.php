@@ -34,32 +34,47 @@ namespace Barcoder;
 //use Barcoder\Encoders\Codebar;
 //use Barcoder\Encoders\ITF;
 //use Barcoder\Encoders\Qrcode;
+//use Barcoder\Render\svg;
 use Barcoder\Exception as BarcoderException;
 
-class Barcoder {
+class Barcoder
+{
+	//private $symbology;
+        //private $data;
+        //private $format;
+        protected string $symbology;
+        protected string $data;
+        //protected string $format;
 
-	public function output_image($format, $symbology, $data, $options, $imagick) {
+	function __construct(string $symbology, string $data)
+	{
+		$this->symbology = $symbology;
+                $this->data = $data;
+                //$this->format = $format;
+	}
+
+	public function output_image($format, $options, $imagick) {
 
             if ($imagick) {
                 switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $format))) {
                         case 'png':
                                 header("Content-Type: image/png");
-                                $image = $this->render_image($format, $symbology, $data, $options, $imagick);
+                                $image = $this->render_image($format, $options, $imagick);
                                 echo $image;
                                 break;
                         case 'gif':
                                 header("Content-Type: image/gif");
-                                $image = $this->render_image($format, $symbology, $data, $options, $imagick);
+                                $image = $this->render_image($format, $options, $imagick);
                                 echo $image;
                                 break;
                         case 'jpg':
                                 header("Content-Type: image/jpg");
-                                $image = $this->render_image($format, $symbology, $data, $options, $imagick);
+                                $image = $this->render_image($format, $options, $imagick);
                                 echo $image;
                                 break;
                         case 'svg':
                                 header('Content-Type: image/svg+xml');
-                                echo $this->render_svg($symbology, $data, $options);
+                                echo $this->render_svg($options);
                                 break;
                 }
             }
@@ -68,46 +83,48 @@ class Barcoder {
 	    	switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $format))) {
 	    		case 'png':
 	    			header('Content-Type: image/png');
-	    			$image = $this->render_image($format, $symbology, $data, $options, $imagick);
+	    			$image = $this->render_image($format, $options, $imagick);
 	    			imagepng($image);
 	    			imagedestroy($image);
 	    			break;
 	    		case 'gif':
 	    			header('Content-Type: image/gif');
-	    			$image = $this->render_image($format, $symbology, $data, $options, $imagick);
+	    			$image = $this->render_image($format, $options, $imagick);
 	    			imagegif($image);
 	    			imagedestroy($image);
 	    			break;
 	    		case 'jpg': case 'jpe': case 'jpeg':
 	    			header('Content-Type: image/jpeg');
-	    			$image = $this->render_image($format, $symbology, $data, $options, $imagick);
+	    			$image = $this->render_image($format, $options, $imagick);
 	    			imagejpeg($image);
 	    			imagedestroy($image);
 	    			break;
 	    		case 'svg':
 	    			header('Content-Type: image/svg+xml');
-	    			echo $this->render_svg($symbology, $data, $options);
+	    			echo $this->render_svg($options);
 	    			break;
 	    	}
             }
 	}
 
-        public function render_image($format, $symbology, $data, $options, $imagick) {
-                //if ($imagick && extension_loaded('imagick') && $symbology[0] == 'q') {
+        public function render_image($format, $options, $imagick) {
+                //if ($imagick && extension_loaded('imagick') && $this->symbology[0] == 'q') {
                 if ($imagick && extension_loaded('imagick')) {
-                    $img = $this->render_imageick($format, $symbology, $data, $options, $imagick=true);
+                    $img = $this->render_imageick($format, $options, $imagick=true);
                     return $img;
                 }
                 else {
-                    $img = $this->render_imagegd($format, $symbology, $data, $options, $imagick=false);
+                    $img = $this->render_imagegd($format, $options, $imagick=false);
                     return $img;
                 }
         }
 
-        public function render_imageick($format, $symbology, $data, $options, $imagick=true) {
+        public function render_imageick($format, $options, $imagick=true) {
                 list($code, $widths, $width, $height, $x, $y, $w, $h, $bord) =
-                        $this->encode_and_calculate_size($symbology, $data, $options);
-
+                        $this->encode_and_calculate_size($options);
+//echo '<pre>';
+//print_r($code);
+//echo '</pre>';
                 $nscale = floor($width/50);
                 $sf = $nscale > 0 && $nscale < 5 ? ($nscale*6)+4 : 32;
                 $bw = $nscale < 2 ? 2 : 4;
@@ -129,7 +146,7 @@ class Barcoder {
                 $barcode->setStrokeColor($bdcolor);
                 $barcode->setStrokeWidth($bw);
 
-                if (in_array('sepa', $options) && $symbology[0] == 'q') {
+                if (in_array('sepa', $options) && $this->symbology[0] == 'q') {
 
                     //$this->sepaimagick($barcode, $width, $height, $bdcolor, $bgcolor);
                         $barcode->roundRectangle(ceil($bord/2), ceil($bord/2), $width-$bord, $height-$bord, $rd, $rd);
@@ -162,7 +179,7 @@ class Barcoder {
 //print_r($bord);
 //echo '</pre>';
                 $colors = [
-                           ((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && ($options['ms'] == 's') || $symbology[0] != 'q') ? $options['cs'] : '#00000000'), // not in array r + x ToDo
+                           ((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && ($options['ms'] == 's') || $this->symbology[0] != 'q') ? $options['cs'] : '#00000000'), // not in array r + x ToDo
                            (isset($options['cm']) ? $options['cm'] : '#000000'),
                            ($options['cz'] ?? '#00000000'), // reserved for quit zones linear barcodes
                            (isset($options['tc']) ? $options['tc'] : '#777777'),
@@ -206,9 +223,9 @@ class Barcoder {
                 return $image;
         }
 
-	public function render_imagegd($format, $symbology, $data, $options, $imagick=false) {
+	public function render_imagegd($format, $options, $imagick=false) {
 		list($code, $widths, $width, $height, $x, $y, $w, $h, $bord) =
-			$this->encode_and_calculate_size($symbology, $data, $options);
+			$this->encode_and_calculate_size($options);
 
                 $nscale = floor($width/50);
                 $bb = $nscale == 1 ? 2 : 4;
@@ -225,7 +242,7 @@ class Barcoder {
 //print_r($nscale.' '.$bb);
 //echo '</pre>';
 
-                if (in_array('sepa', $options) && $symbology[0] == 'q') {
+                if (in_array('sepa', $options) && $this->symbology[0] == 'q') {
                         //$this->bordersepa($image, $text, $font, $width, $height, $border, $bgcolor, $scale);
                         $this->sepagd($image, $width, $height, $bdcolor, $bgcolor);
 
@@ -254,7 +271,7 @@ class Barcoder {
                 }
 
 		$colors = array(
-			((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && ($options['ms'] == 's') || $symbology[0] != 'q') ? $options['cs'] : '#00000000'), // not in array r + x ToDo
+			((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && ($options['ms'] == 's') || $this->symbology[0] != 'q') ? $options['cs'] : '#00000000'), // not in array r + x ToDo
 			(isset($options['cm']) ? $options['cm'] : '000'),
                         ($options['cz'] ?? '#00000000'), // reserved for quit zones linear barcodes
 			(isset($options['c3']) ? $options['c3'] : 'FF0'),
@@ -283,9 +300,9 @@ class Barcoder {
                 //return $imagestring; //$image
 	}
 
-	public function render_svg($symbology, $data, $options) {
+	public function render_svg($options) {
 		list($code, $widths, $width, $height, $x, $y, $w, $h, $bord) =
-			$this->encode_and_calculate_size($symbology, $data, $options);
+			$this->encode_and_calculate_size($options);
 
                 $nscale = floor($width/50);
                 $bw = $nscale < 2 ? 2 : 4;
@@ -309,7 +326,7 @@ class Barcoder {
                     }
 			$svg .= ' width="' . ($width-$bord) . '" height="' . ($height-$bord) . '"';
 			$svg .= ' fill="' . htmlspecialchars($bgcolor) . '"';
-                    if (in_array('sepa', $options) && $symbology[0] == 'q') {
+                    if (in_array('sepa', $options) && $this->symbology[0] == 'q') {
                             $svg .= $this->sepasvg($width, $height, $bdcolor, $bgcolor);
                     }
                     else if (isset($options['bd']) && $options['bd'][0] !== '0' && (!in_array('sepa', $options))) {
@@ -322,7 +339,7 @@ class Barcoder {
                     }
                 }
 		$colors = array(
-                        ((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && $options['ms'] == 's') || $symbology[0] != 'q' ? $options['cs'] : '#00000000'), // not in array r + x ToDo
+                        ((isset($options['cs']) && ! isset($options['ms'])) || (isset($options['ms']) && $options['ms'] == 's') || $this->symbology[0] != 'q' ? $options['cs'] : '#00000000'), // not in array r + x ToDo
 			(isset($options['cm']) ? $options['cm'] : 'black'),
                         ($options['cz'] ?? '#00000000'), // reserved for quit zones linear barcodes
 			(isset($options['c3']) ? $options['c3'] : '#FFFF00'),
@@ -338,8 +355,13 @@ class Barcoder {
 
 	/* - - - - INTERNAL FUNCTIONS - - - - */
 
-	private function encode_and_calculate_size($symbology, $data, $options) {
-		$code = $this->dispatch_encode($symbology, $data, $options);
+	private function encode_and_calculate_size($options) {
+		$code = $this->encode();
+
+//echo '<pre>';
+//print_r($code);
+//echo '</pre>';
+
 		$widths = array(
 			(isset($options['wq']) ? (int)$options['wq'] : 1),
 			(isset($options['wm']) ? (int)$options['wm'] : 1),
@@ -448,7 +470,8 @@ class Barcoder {
                 imagefttext($image, $sf, 90, $width-$xw, round(($height/2)+$xh), $bdcolor, $font, $text);
         }
 
-        private function imagerectangleround($img, $x1, $y1, $x2, $y2, $radius, $color) {
+        private function imagerectangleround($img, $x1, $y1, $x2, $y2, $radius, $color)
+        {
                 $radius = min($radius, floor(min(($x2-$x1)/2, ($y2-$y1)/2)));
 
                 imageline($img, $x1+$radius, $y1, $x2-$radius, $y1, $color);
@@ -462,7 +485,8 @@ class Barcoder {
                 imagearc($img,$x2-$radius, $y2-$radius, $radius*2, $radius*2, 360 , 90, $color);
         }
 
-	private function allocate_color($image, $color) {
+	private function allocate_color($image, $color)
+        {
 		$color = preg_replace('/[^0-9A-Fa-f]/', '', $color);
 		switch (strlen($color)) {
 			case 1:
@@ -502,51 +526,56 @@ class Barcoder {
 
 	/* - - - - DISPATCH - - - - */
 
-	private function dispatch_encode($symbology, $data, $options) {
-		switch (strtolower(preg_replace('/[^A-Za-z0-9+]/', '', $symbology))) {
-                        case 'upca'       : return (new Encoders\UPC)->upc_a_encode($data);
-                        case 'upce'       : return (new Encoders\UPC)->upc_e_encode($data);
-                        case 'ean2'       : return (new Encoders\UPC)->ean_2_encode($data);
-                        case 'ean5'       : return (new Encoders\UPC)->ean_5_encode($data);
-                        case 'ean8'       : return (new Encoders\UPC)->ean_8_encode($data);
-                        case 'ean13'      : return (new Encoders\UPC)->ean_13_encode($data, ' ');
-                        case 'ean13pad'   : return (new Encoders\UPC)->ean_13_encode($data, '>');
-                        case 'code11'     : return (new Encoders\Code11)->code_11_encode($data);
-                        case 'code39'     : return (new Encoders\Code39)->code_39_encode($data);
-                        case 'code39ascii': return (new Encoders\Code39)->code_39_ascii_encode($data);
-                        case 'code93'     : return (new Encoders\Code93)->code_93_encode($data);
-                        case 'code93ascii': return (new Encoders\Code93)->code_93_ascii_encode($data);
-                        case 'code128'    : return (new Encoders\Code128)->code_128_encode($data, 0,false);
-                        case 'code128a'   : return (new Encoders\Code128)->code_128_encode($data, 1,false);
-                        case 'code128b'   : return (new Encoders\Code128)->code_128_encode($data, 2,false);
-                        case 'code128c'   : return (new Encoders\Code128)->code_128_encode($data, 3,false);
-                        case 'code128ac'  : return (new Encoders\Code128)->code_128_encode($data,-1,false);
-                        case 'code128bc'  : return (new Encoders\Code128)->code_128_encode($data,-2,false);
-                        case 'ean128'     : return (new Encoders\Code128)->code_128_encode($data, 0, true);
-                        case 'ean128a'    : return (new Encoders\Code128)->code_128_encode($data, 1, true);
-                        case 'ean128b'    : return (new Encoders\Code128)->code_128_encode($data, 2, true);
-                        case 'ean128c'    : return (new Encoders\Code128)->code_128_encode($data, 3, true);
-                        case 'ean128ac'   : return (new Encoders\Code128)->code_128_encode($data,-1, true);
-                        case 'ean128bc'   : return (new Encoders\Code128)->code_128_encode($data,-2, true);
-                        case 'codabar'    : return (new Encoders\Codabar)->codabar_encode($data);
-                        case 'pharma'     : return (new Encoders\Pharma)->pharma_encode($data);
-                        case 'i25+'       : return (new Encoders\ITF)->i25check_encode($data);
-                        case 'i25'        : return (new Encoders\ITF)->i25_encode($data);
-                        case 's25+'       : return (new Encoders\ITF)->s25check_encode($data);
-                        case 's25'        : return (new Encoders\ITF)->s25_encode($data);
-                        case 'msi'        : return (new Encoders\Msi)->msi_encode($data, 0);
-                        case 'msi+'       : return (new Encoders\Msi)->msi_encode($data, 11);
-                        case 'qr'         : return (new Encoders\Qrcode)->qr_encode($data, 0);
-                        case 'qrl'        : return (new Encoders\Qrcode)->qr_encode($data, 0);
-                        case 'qrm'        : return (new Encoders\Qrcode)->qr_encode($data, 1);
-                        case 'qrq'        : return (new Encoders\Qrcode)->qr_encode($data, 2);
-                        case 'qrh'        : return (new Encoders\Qrcode)->qr_encode($data, 3);
-                        case 'dmtx'       : return (new Encoders\DMTX)->dmtx_encode($data,false,false);
-                        case 'dmtxs'      : return (new Encoders\DMTX)->dmtx_encode($data,false,false);
-                        case 'dmtxr'      : return (new Encoders\DMTX)->dmtx_encode($data, true,false);
-                        case 'gs1dmtx'    : return (new Encoders\DMTX)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxs'   : return (new Encoders\DMTX)->dmtx_encode($data,false, true);
-                        case 'gs1dmtxr'   : return (new Encoders\DMTX)->dmtx_encode($data, true, true);
+	private function encode()
+        {
+		switch (strtolower(preg_replace('/[^A-Za-z0-9+]/', '', $this->symbology))) {
+                        case 'upca'        : return (new Encoders\UPC)->upc_a_encode($this->data);
+                        case 'upce'        : return (new Encoders\UPC)->upc_e_encode($this->data);
+                        case 'ean2'        : return (new Encoders\UPC)->ean_2_encode($this->data);
+                        case 'ean5'        : return (new Encoders\UPC)->ean_5_encode($this->data);
+                        case 'ean8'        : return (new Encoders\UPC)->ean_8_encode($this->data, ' ', ' ');
+                        case 'ean8pad'     : return (new Encoders\UPC)->ean_8_encode($this->data, '<', '>');
+                        case 'ean13'       : return (new Encoders\UPC)->ean_13_encode($this->data, ' ');
+                        case 'ean13pad'    : return (new Encoders\UPC)->ean_13_encode($this->data, '>');
+                        case 'code11'      : return (new Encoders\Code11)->code_11_encode($this->data);
+                        case 'code39'      : return (new Encoders\Code39)->code_39($this->data);
+                        case 'code39+'     : return (new Encoders\Code39)->code_39_check($this->data);
+                        case 'code39ascii' : return (new Encoders\Code39)->code_39_ascii($this->data);
+                        case 'code39ascii+': return (new Encoders\Code39)->code_39_ascii_check($this->data);
+                        case 'code93'      : return (new Encoders\Code93)->code_93_encode($this->data);
+                        case 'code93ascii' : return (new Encoders\Code93)->code_93_ascii_encode($this->data);
+                        case 'code128'     : return (new Encoders\Code128)->code_128_encode($this->data, 0,false);
+                        case 'code128a'    : return (new Encoders\Code128)->code_128_encode($this->data, 1,false);
+                        case 'code128b'    : return (new Encoders\Code128)->code_128_encode($this->data, 2,false);
+                        case 'code128c'    : return (new Encoders\Code128)->code_128_encode($this->data, 3,false);
+                        case 'code128ac'   : return (new Encoders\Code128)->code_128_encode($this->data,-1,false);
+                        case 'code128bc'   : return (new Encoders\Code128)->code_128_encode($this->data,-2,false);
+                        case 'ean128'      : return (new Encoders\Code128)->code_128_encode($this->data, 0, true);
+                        case 'ean128a'     : return (new Encoders\Code128)->code_128_encode($this->data, 1, true);
+                        case 'ean128b'     : return (new Encoders\Code128)->code_128_encode($this->data, 2, true);
+                        case 'ean128c'     : return (new Encoders\Code128)->code_128_encode($this->data, 3, true);
+                        case 'ean128ac'    : return (new Encoders\Code128)->code_128_encode($this->data,-1, true);
+                        case 'ean128bc'    : return (new Encoders\Code128)->code_128_encode($this->data,-2, true);
+                        case 'codabar'     : return (new Encoders\Codabar)->codabar_encode($this->data);
+                        case 'pharma'      : return (new Encoders\Pharma)->pharma_encode($this->data);
+                        case 'i25+'        : return (new Encoders\ITF)->i25check_encode($this->data);
+                        case 'i25'         : return (new Encoders\ITF)->i25_encode($this->data);
+                        case 's25+'        : return (new Encoders\ITF)->s25check_encode($this->data);
+                        case 's25'         : return (new Encoders\ITF)->s25_encode($this->data);
+                        case 'msi'         : return (new Encoders\Msi)->msi_encode($this->data, 0);
+                        case 'msi+'        : return (new Encoders\Msi)->msi_encode($this->data, 11);
+                        case 'qr'          : return (new Encoders\Qrcode)->qr_encode($this->data, 0);
+                        case 'qrl'         : return (new Encoders\Qrcode)->qr_encode($this->data, 0);
+                        case 'qrm'         : return (new Encoders\Qrcode)->qr_encode($this->data, 1);
+                        case 'qrq'         : return (new Encoders\Qrcode)->qr_encode($this->data, 2);
+                        case 'qrh'         : return (new Encoders\Qrcode)->qr_encode($this->data, 3);
+                        case 'dmtx'        : return (new Encoders\DMTX)->dmtx_encode($this->data,false,false);
+                        case 'dmtxs'       : return (new Encoders\DMTX)->dmtx_encode($this->data,false,false);
+                        case 'dmtxr'       : return (new Encoders\DMTX)->dmtx_encode($this->data, true,false);
+                        case 'gs1dmtx'     : return (new Encoders\DMTX)->dmtx_encode($this->data,false, true);
+                        case 'gs1dmtxs'    : return (new Encoders\DMTX)->dmtx_encode($this->data,false, true);
+                        case 'gs1dmtxr'    : return (new Encoders\DMTX)->dmtx_encode($this->data, true, true);
+                        case 'aztec'       : return (new Encoders\Aztec\Encoder)->encode($this->data, 33, 'dynamic');
 		}
 		return null;
 	}
@@ -633,7 +662,9 @@ class Barcoder {
                 $textbase = (isset($options['tb']) && (int)$options['tb'] !== 0 ? (int)$options['tb'] : 0);
                 $textfont = (isset($options['tf']) ? (string)$options['tf'] : __dir__.'/../examples/fonts/FreeMono.ttf');
                 $textcolor = (isset($options['tc']) ? (int)$options['tc'] : '000');
-
+//echo '<pre>';
+//print_r($code);
+//echo '</pre>';
                 $width = 0;
                 foreach ($code['b'] as $block) {
                         foreach ($block['m'] as $module) {
